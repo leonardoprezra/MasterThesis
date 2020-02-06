@@ -31,6 +31,10 @@ from MarsonFunctions import core_properties, mom_inertia, settings
 import os
 import sys
 
+# Create directory to store simulation results
+if(not os.path.exists("data2")):
+    os.mkdir("data2")
+
 # Parameters
 
 N = 20
