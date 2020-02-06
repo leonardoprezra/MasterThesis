@@ -47,7 +47,7 @@ outputInterval = 1
 time_step = 0.005/2
 
 therm_steps = 1000
-npt_steps = 100
+npt_steps = 1000
 equil_steps = 1000
 
 kT = 1.0
