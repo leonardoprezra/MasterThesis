@@ -1,0 +1,24 @@
+#!/bin/bash -l
+# Batch processing script
+
+#PBS -l nodes=1:ppn=4,walltime=00:30:00
+#PBS -N rigidHoomd
+
+
+
+# Load required modules (compiler, ...)
+module load python/3.7-anaconda
+
+# Activate local environment where hoomd is installed
+source activate localconda
+
+# change to temporary job data directory
+# located in node, between 400-900GB
+cd  $TMPDIR
+
+# run simulation
+python $HOME/Marson_Parameter_NVE.py
+
+# copy results
+cp -r data* $HPCVAULT
+
