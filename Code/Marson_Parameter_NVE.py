@@ -105,6 +105,12 @@ for initString, initDict in [l for dictionary in parameterspace
     else:
         print("Lauing "+nameString)
 
+    normalstdout = sys.stdout
+    normalstderr = sys.stderr
+
     sys.stdout = open(nameString+".outputs", "w")
     sys.stderr = open(nameString+".err", "w")
     Marson2NVE(**initDict)
+
+    sys.stdout = normalstdout
+    sys.stderr = normalstderr
