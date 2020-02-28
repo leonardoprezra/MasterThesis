@@ -17,7 +17,7 @@ source activate localconda
 cd  $TMPDIR
 
 # run simulation
-python $HOME/Marson_Parameter_NVE.py
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py
 
 # copy results
 cp -r data* $HPCVAULT
