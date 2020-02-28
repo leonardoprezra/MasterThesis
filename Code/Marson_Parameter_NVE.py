@@ -24,7 +24,7 @@ import subprocess
 import random
 import math
 import sys
-from Marson22NVE import Marson2NVE
+from MarsonNVE import MarsonNVE
 
 paraFormat = "{:s}={:s}"
 
@@ -110,7 +110,7 @@ for initString, initDict in [l for dictionary in parameterspace
 
     sys.stdout = open(nameString+".outputs", "w")
     sys.stderr = open(nameString+".err", "w")
-    Marson2NVE(**initDict)
+    MarsonNVE(**initDict)
 
     sys.stdout = normalstdout
     sys.stderr = normalstderr
