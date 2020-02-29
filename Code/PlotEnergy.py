@@ -1,8 +1,12 @@
+'''
+Plots variables from log files in current directory
+'''
+
 from matplotlib import pyplot as plt
 import numpy as np
 import os
 
-path = '/nishome/students/leonardo/Dokumente/Thesis/Code/try'
+path = os.getcwd()
 data_names = []
 
 for root, dirs, files in os.walk(path, topdown=True):
@@ -23,7 +27,7 @@ for t in titles:
     ax1_1.set_title(t)
     for d in data_names:
         if d[0] == t:
-            label = d[1]
+            label = d[1].split('_')[-2]+d[1].split('_')[-1]
             data = np.genfromtxt(fname=d[2], skip_header=True)
             ax1_1.plot(data[:, 0], data[:, 4], label=label)
 

@@ -36,10 +36,10 @@ settings['pressure'] = 5  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
 settings['hpmc_steps'] = 10  # Number of time steps of hpmc simulation
-settings['npt_steps'] = 1000  # Number of steps required during compression
-settings['equil_steps'] = 1000  # Number of equilibration steps
-settings['therm_steps'] = 1000  # Number of thermalization steps
-settings['nve_steps'] = 1000  # Number of thermalization steps
+settings['npt_steps'] = 10000  # Number of steps required during compression
+settings['equil_steps'] = 10000  # Number of equilibration steps
+settings['therm_steps'] = 10000  # Number of thermalization steps
+settings['nve_steps'] = 10000  # Number of thermalization steps
 
 settings['outputInterval'] = 1  # Number of time steps between data storage
 a = math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
