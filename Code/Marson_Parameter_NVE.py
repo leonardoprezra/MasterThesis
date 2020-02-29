@@ -57,7 +57,7 @@ settings['density'] = [0.3]  # Volume fraction
 settings['dimensions'] = [3]  # 2d or 3d
 settings['integrator'] = ['local']  # Integrator
 settings['nameString'] = [
-    'integrator_{integrator}_shape_{poly}_N_{N}_VF_{density:4.2f}_dim_{dimensions}_Nclus_{N_cluster}_tstep_{time_step}']
+    'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}']
 settings["initFile"] = ['None']
 settings['outputInterval'] = [100]  # Number of time steps between data storage
 settings['N_cluster'] = 17  # Number of halo spheres in cluster

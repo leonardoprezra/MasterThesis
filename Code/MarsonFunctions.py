@@ -18,7 +18,7 @@ settings['dimensions'] = 3  # 2d or 3d
 settings['N_cluster'] = 17  # number of spheres in cluster
 
 settings['integrator'] = 'langevin'  # Integrator
-settings['nameString'] = 'integrator_{integrator}_shape_{poly}_N_{N}_VF_{density:4.2f}_dim_{dimensions}_Nclus_{N_cluster}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
 settings["initFile"] = "None"
 
 settings['max_move'] = 0.002  # Maximum move displacement (HPMC)
