@@ -43,11 +43,11 @@ def MarsonNVE(**kwargs):
             if para in settings:
                 settings[para] = settings[para].__class__(value)
             else:
-                print("Found an invalid Argument: "+sys.argv[i])
+                print("Found an invalid Argument: ", para)
                 sys.exit(5)
         except:
-            print("Found an invalid Argument: "+sys.argv[i])
-            exit()
+            print("Found an invalid Argument: ", para)
+            sys.exit(5)
 
     # Updates parameters
     N = settings['N']
@@ -95,9 +95,8 @@ def MarsonNVE(**kwargs):
 
     # # Create snapshot for simulation
     # Lattice as starting configuration
-    if True:
-        system, rigid, group_core, group_halo, total_N = create_snapshot(
-            cluster=cluster, dimensions=dimensions, N=N)
+    system, rigid, group_core, group_halo, total_N = create_snapshot(
+        cluster=cluster, dimensions=dimensions, N=N)
 
     if dimensions == 2:
         boxLen = math.sqrt(cluster.vol_cluster(dimensions) * total_N / density)
