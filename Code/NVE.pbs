@@ -18,10 +18,12 @@ source activate localconda
 cd  $TMPDIR
 
 # run simulation
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 3 13
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 13 18
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 18 22
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 22 24
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 3 13 &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 13 18 &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 18 22 &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 22 24 &
+
+wait
 
 # copy results
 cp -r data* $HPCVAULT
