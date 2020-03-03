@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 25  # N**2 or N**3 are the number of PSCs
+settings['N'] = 5  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
 settings['poly'] = '3Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
@@ -17,7 +17,7 @@ settings['density'] = 0.5  # Volume fraction
 settings['dimensions'] = 3  # 2d or 3d
 settings['N_cluster'] = 17  # number of spheres in cluster
 
-settings['integrator'] = 'langevin'  # Integrator
+settings['integrator'] = 'nve'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
 settings["initFile"] = "None"
 
@@ -36,10 +36,10 @@ settings['pressure'] = 5  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
 settings['hpmc_steps'] = 10  # Number of time steps of hpmc simulation
-settings['npt_steps'] = 10000  # Number of steps required during compression
-settings['equil_steps'] = 10000  # Number of equilibration steps
-settings['therm_steps'] = 10000  # Number of thermalization steps
-settings['nve_steps'] = 10000  # Number of thermalization steps
+settings['npt_steps'] = 100  # Number of steps required during compression
+settings['equil_steps'] = 100  # Number of equilibration steps
+settings['therm_steps'] = 100  # Number of thermalization steps
+settings['nve_steps'] = 100  # Number of thermalization steps
 
 settings['outputInterval'] = 1  # Number of time steps between data storage
 a = math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
@@ -313,7 +313,7 @@ def create_snapshot(cluster, N, dimensions=3):
                       [0, 0, 1]]
 
         n = [N, N]
-
+    '''
     if cluster.poly_key == '2Dspheres' and cluster.N_cluster == 3:
         a1, a2, a3 = [[3*cluster.halo_diam, 0, 0],
                       [0, math.sin(math.pi/3)*cluster.halo_diam*2, 0],
@@ -323,7 +323,7 @@ def create_snapshot(cluster, N, dimensions=3):
                          [3*cluster.halo_diam/4, cluster.halo_diam*math.sin(math.pi/3)/6, 0]]
         part_orientation = [[-math.cos(math.pi/6/2), 0, 0, math.sin(math.pi/6/2)],
                             [-math.cos(math.pi/2/2), 0, 0, math.sin(math.pi/2/2)]]
-
+    '''
     # Creates lattice
     uc = hoomd.lattice.unitcell(N=part_per_cell,
                                 a1=a1,

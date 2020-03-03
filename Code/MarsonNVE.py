@@ -24,7 +24,6 @@ local
 langevin
 '''
 
-from __future__ import division
 import hoomd
 import hoomd.md
 import hoomd.hpmc
@@ -57,8 +56,6 @@ def MarsonNVE(**kwargs):
     density = settings['density']
     dimensions = settings['dimensions']
 
-    nameString = "data_{}/".format(
-        poly_key) + settings['nameString'].format(**settings)
     outputInterval = settings['outputInterval']
     time_step = settings['time_step']
 
@@ -70,6 +67,18 @@ def MarsonNVE(**kwargs):
 
     sigma_u = settings['sigma']
     epsilon_u = settings['epsilon']
+
+    # Print the correct number of clusters in the system
+    user_N = settings['N']
+    if settings['dimensions'] == 3:
+        settings['N'] = settings['N']**3
+    elif settings['dimensions'] == 2:
+        settings['N'] = settings['N']**2
+
+    nameString = "data_{}/".format(
+        poly_key) + settings['nameString'].format(**settings)
+
+    settings['N'] = user_N
 
     # Create directory to store simulation results
     if(not os.path.exists("data_{}".format(poly_key))):
@@ -227,6 +236,7 @@ def MarsonNVE(**kwargs):
 
     hoomd.run(equil_steps)
 
+    '''
     langevin.disable()
 
     # NVE simulation
@@ -254,3 +264,8 @@ def MarsonNVE(**kwargs):
                        overwrite=True)
 
     hoomd.run(nve_steps)
+    '''
+
+
+if __name__ == "__main__":
+    MarsonNVE()

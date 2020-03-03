@@ -28,27 +28,30 @@ from MarsonNVE import MarsonNVE
 
 # General simulation parameters
 settings = {}
-settings['N'] = 10  # N**2 or N**3 are the number of PSCs
+settings['N'] = 63  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['sigma'] = 1.0  # WCA-potential parameters
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
 settings["initFile"] = 'None'
-settings['outputInterval'] = 100  # Number of time steps between data storage
+settings['outputInterval'] = 1000  # Number of time steps between data storage
+settings['equil_steps'] = 50000  # Number of equilibration steps
+settings['therm_steps'] = 100000  # Number of thermalization steps
 
 nameFormat = "data_{poly}/" + settings['nameString']
 
 
 # Specific simulation parameters
 parameterspace = []
-dens_values = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]
-tstep_values = [0.001, 0.002, 0.003, 0.004, 0.005,
-                0.006, 0.007, 0.008, 0.009, 0.01,
-                0.02, 0.03, 0.04, 0.05, 0.06,
-                0.07, 0.08, 0.09, 0.1]
 
+dens = int(sys.argv[1])/100
+tstep_multiplier = 0.007
 
+start_N_cluster = int(sys.argv[2])
+end_N_cluster = int(sys.argv[3])
+
+'''
 for dens in dens_values:
     for tstep_multiplier in tstep_values:
         parameters = [
@@ -114,11 +117,26 @@ for dens in dens_values:
                  'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
                  # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
                  }]
+'''
+
+for i in range(start_N_cluster, end_N_cluster, 1):
+    parameterspace += [
+        {**settings,
+            'integrator': 'nve',
+            'density': dens,
+            'poly': '2Dspheres',
+            'dimensions': 2,
+            'N_cluster': i,
+            'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
+            # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
+         }]
 
 
 # Run Simulations
 for initDict in parameterspace:
 
+    # Print the correct number of clusters in the system
+    user_N = initDict['N']
     if initDict['dimensions'] == 3:
         initDict['N'] = initDict['N']**3
     elif initDict['dimensions'] == 2:
@@ -126,28 +144,30 @@ for initDict in parameterspace:
 
     nameString = nameFormat.format(**initDict)
 
+    initDict['N'] = user_N
+
+    # Create directories
     if(not os.path.exists("data_{poly}/".format(**initDict))):
         os.mkdir("data_{poly}/".format(**initDict))
 
+    # Print current working simulation
     if(os.path.exists(nameString+".outputs")):
-        print("Skipping "+nameString)
+        print("\nSkipping "+nameString)
         continue
     else:
-        print("Lauing "+nameString)
+        print("\nLauing "+nameString)
 
+    # Write stderr and stdout on files
     normalstdout = sys.stdout
     normalstderr = sys.stderr
-    '''
+
     out = open(nameString+".outputs", "w")
     sys.stderr = out
     sys.stdout = out
-    '''
-    try:
-        MarsonNVE(**initDict)
-    except:
-        sys.stdout = normalstdout
-        sys.stderr = normalstderr
-        continue
 
-    #sys.stdout = normalstdout
-    #sys.stderr = normalstderr
+    # Run simulations
+    MarsonNVE(**initDict)
+
+    # Return stderr and stdout to normal stream
+    sys.stdout = normalstdout
+    sys.stderr = normalstderr
