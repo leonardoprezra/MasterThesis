@@ -152,7 +152,7 @@ for initDict in parameterspace:
         if(not os.path.exists("data_{poly}/".format(**initDict))):
             os.mkdir("data_{poly}/".format(**initDict))
     except OSError as e:
-        if e.errno != os.errno.EEXIST:
+        if e.errno != 17:
             raise
         pass
 
