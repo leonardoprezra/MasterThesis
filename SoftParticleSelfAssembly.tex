@@ -22,7 +22,7 @@
 backend=biber,
 style=chem-acs,
 sorting=ynt]{biblatex}
-\addbibresource{SoftParticleSelfAssembly.bib}
+\addbibresource{SoftParticleSelfAssemblyBib.bib}
 
 \usepackage{geometry}
 \geometry{
@@ -56,9 +56,194 @@ bottom=1in,
 
 \newpage
 	
-\section{Introduction}
+\section{Theory}
 
-industries.\autocite{Frenkel.2015} 
+\subsection{Fragility in soft colloids}
+Microscopic origin of fragility in soft colloids is still unknown.\autocite{Gnan.2019}
+
+
+
+\subsection{Compressed exponential relaxation}
+Compressed exponential relaxation is an open question in colloidal systems and glass-formers.\autocite{Gnan.2019} And works have associated its presence to the release of local stresses.
+
+
+\subsection{Examples of soft particles and hard particles}
+Examples of hard particles: sterically stabilized polymethylmethacrylate.\autocite{Gnan.2019} 
+Examples of soft and ultrasoft particles: microgels, emulsions, star polymers.\autocite{Gnan.2019}
+
+\subsection{How are soft particles characterized (parameters)}
+\subsubsection{Parameters}
+Particle internal elasticity used to distinguish hard particles from soft and ultrasoft ones.\autocite{Gnan.2019}
+
+Fragility: dependence of the structural relaxation time on temperature or on packing fraction.\autocite{Gnan.2019}
+
+Systems are fragile when the small changes in temperature or packing fraction produce large variations in the structural relaxation time.\autocite{Gnan.2019} This behavior is described by a Vogel-Fulcher-Tammann law.\autocite{Princen.1983} Strong systems are described by an Arrhenius behavior.\autocite{Gnan.2019} 
+
+No consensus on link between elasticity and fragility. 
+
+Self intermediate scattering functions.\autocite{Gnan.2019}
+
+The shape factor of the self intermediate scattering function.\autocite{Gnan.2019} For HZDs $\beta < 1$ with a stretched exponential shape, and for EPRs $\beta > 1$ is faster than exponential.
+
+Effective packing fraction $\phi$ vs nominal packing fraction $\zeta$.\autocite{Gnan.2019}
+
+Alignment in the direction of motion can be observed as negative values of the self intermediate scattering function.\autocite{Gnan.2019}
+
+diffraction pattern, radial distribution function (RDF), and bond-orientational order diagram (BOD)\autocite{Marson.2019}
+
+
+
+\subsubsection{Behavior}
+Melting upon compression (manifested in a decrease in the structural relaxation time),\autocite{Gnan.2019} is observed in Hertzian spheres,\autocite{Berthier.2010} and single-chain nanoparticles.\autocite{LoVerso.2016}
+
+Reentrant melting = melting upon compression.\autocite{Gnan.2019} the mechanism for hertzian disks (HZDs) is overlapping and EPRs is particle deformation (accompanied by accumulation of internal stresses).
+
+EPRs present a compressed exponential relaxation of "self intermediate scattering functions" with $\beta > 1$ for packing fraction $\gtrsim 0.9$, accompanied by a super diffusive behavior of the mean-squared displacement (MSD), meaning MSD $\sim t^\gamma ,\gamma>1$.\autocite{Gnan.2019} Those can be explained by a superposition of different particle populations (the fastest ones experiencing a ballistic behaviour). The number of particles experiencing a ballistic behavior ($\gamma = 2$), increases with paking fraction and repulsive strength of the hertzian potential.
+
+The self-intermediate scaterring function becomes negative at long times, before decaying to zero.\autocite{Gnan.2019} Such behavior is observed in \textbf{active particles} and signals persistent motion in one direction.
+
+Effective packing fraction $\phi$ < nominal packing fraction for denser states.\autocite{Gnan.2019} This can be observed in ionic microgels.
+
+Deswelling at high concentrations due to shape deformation is captured in EPRs.\autocite{Gnan.2019}
+
+PSCs of hard-spheres fail to crystallize at high volume fractions.\autocite{Marson.2019}
+
+\subsection{Simulation approaches of soft particles}
+A Hertzian potential (a simple repulsive model) is usually used to simulate the microscopic behavior of the systems, it performs well for microgel particles at moderate packing fractions, but it's expected to fail in denser systems.\autocite{Gnan.2019} For such simple pair potentials the change in fragility with softness is modest\autocite{Sengupta.2011} or absent\autocite{Michele.2004}. 
+
+Using simple pair potentials such as the Hertzian potential allows for overlap, but neglects reallistic behavior such as: deswelling, interpenetration and faceting.
+
+Elastic Polymer Rings (EPRs) is a model that can shrink and deform, it applies a Hertzian potential between the center of mass of the ring and the particles conforming the ring.\autocite{Gnan.2019}
+
+EPRs was inspired by ultrasoft microgels with tunable internal elasticity.\autocite{Bachman.2015}
+
+\subsection{Dependence of fragility to packing fraction in ultrasoft and hollow microgels}
+Ultrasoft microgels: without or with very few crosslinkers\autocite{Gnan.2019}
+
+Hollow microgels: empty core is surrounded by a fluffy polymeric corona\autocite{Gnan.2019}
+
+
+\subsection{Current applications of soft particles}
+Colloidal crystals can be used to produce color deriving from its structural arrangement, instead of the use of dyes.\autocite{Shah.2014}
+
+Photonic properties of the diamond family of colloidal structures.\autocite{Kleinert.2010}\textsuperscript{,}\autocite{Vlasov.2001}
+
+To achieve different structures, other than FCC, anisotropical interactions are required, these can be introduced in the form of colloidal shape, patterning.\autocite{Marson.2019} Besides this, particle softness also affects the ordering of the systems.\autocite{Gnan.2019}
+
+\subsection{Potential applications of soft particles}
+
+\textbf{tuneable-shape of membranes in conjunction with electromagnetic fields}
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+\section{StillNeedToRead}
+
+Mechanisms to control phase behavior
+DOI: 10.1021/nn4057353 
+DOI: 10.1039/c0sm01125h 
+DOI: 10.1038/nature06443
+
+Definition of particle softness
+DOI: 10.1016/j.cocis.2014.09.007  \textbf{NoAccess}
+
+Reports of softness controlling fragility
+doi: 10.1039/c5sm00640f 
+doi: 10.1039/c7sm00739f
+
+Vogel-Fulcher-Tammann law
+doi: 10.1038/35065704 
+
+Usage of Hertzian potential in microgel particle systems
+ DOI: 10.1063/1.4866644 
+ DOI: 10.1038/s41467-018-07332-5 
+ 
+Failure of Hertzian potential
+ DOI: 10.1038/s41598-017-01471-3 
+ 
+Deswelling
+doi: 10.1039/c6sm02056a
+doi: 10.1038/s41598-017-10788-y
+doi: 10.1039/c8sm00799c
+
+
+Interpenetration
+doi: 10.1038/s41598-017-01471-3
+
+Faceting
+doi: 10.1126/sciadv.1700969
+
+Melting upon compression
+doi: 10.1103/PhysRevE.82.060501
+doi: 10.1039/c6sm02136k
+
+Compressed exponential relaxation
+doi: 10.1103/PhysRevLett.84.2275
+doi: 10.1039/c3sm52173g
+doi: 10.1063/1.4790131
+doi: 10.1038/ncomms5049
+doi: 10.1140/epje/i2002-10075-3
+doi: 10.1039/b204495a
+doi: 10.1209/epl/i2006-10357-4
+
+Active particles
+doi: 10.1038/srep36702
+doi: 10.1016/j.colsurfb.2015.07.048
+
+Ionic microgels and deviation of effective and nomina packing fractions
+doi: 10.1103/PhysRevLett.114.098303
+
+Angell's plot
+doi: 10.1126/science.267.5206.1924
+
+Ultrasoft microgels
+doi: 10.1039/c5sm00047e
+doi: 10.1039/c6sm00140h
+doi: 10.1021/la0269762
+
+Hollow microgels
+doi: 10.1063/1.5026100
+
+Primoz Ziherl
+DOI:10.1103/PhysRevE.98.022409
+http://dx.doi.org/10.1016/j.bpj.2015.11.024
+DOI: 10.1038/srep15854
+10.1103/PhysRevLett.110.214301
+DOI: 10.1039/c2sm25759a 
+DOI: 10.1039/b802733a 
+DOI: 10.1103/PhysRevLett.99.248301 
+DOI: 10.1103/PhysRevLett.99.128102 
+doi: 10.1209/0295-5075/78/46004
+
+DOI: 10.1039/c8sm00293b 
+DOI: 10.1039/c6sm02474b 
+DOI: 10.1038/srep15854 
+
+
+Emanuella Zacarelli
+DOI: 10.1021/acsnano.9b00390 
+DOI: 10.1038/s41598-018-32642-5 
+DOI: 10.1088/1361-648X/aaa0f4 
+DOI: 10.1088/1742-5468/2016/09/094003 
+DOI: 10.1039/c4sm02010c 
+DOI: 10.1039/c5nr03702f 
+DOI: 10.1063/1.5113588 
+DOI: 10.1021/acs.molpharmaceut.9b00019 
+
+DOI: 10.1021/acs.macromol.9b01122 
+DOI: 10.1039/c9sm01253b 
+DOI: 10.1039/c8sm02089b
 
 
 \section{Theory}
@@ -67,7 +252,18 @@ industries.\autocite{Frenkel.2015}
 
 
 \section{Experimental Methods}
+\subsection{PSCs simulations}
+\textbf{Creating rigid bodies}
+The type of the rigid body is defined by the particle type of the central (core) particle.
 
+Central (core) particle of rigid bodies must be created first than constituent (halo) particles, because HOOMD-blue requires them to have a lower tag than any constituent particle in the rigid body. create-bodies() or validate_bodies() need to be called prior to starting the simulation, to create constituent particles that don't yet exist.
+
+\textbf{Neighborlists and potentials}
+Particles can be excluded if they belong to the rigid body. If particles are not in the neighborlist, interaction potentials are not calculated.
+
+All particles with positive values of the body flag are considered part of a rigid body (see hoomd.md.constrain.rigid), while the default value of -1 indicates that a particle is free. Any other negative value of the body flag indicates that the particles are part of a floppy body; such particles are integrated separately, but are automatically excluded from the neighbor list as well. (COPIA)
+
+Interaction between particles of the same rigid body are not calculated.
 
 \section{Results and Discussion}
 
