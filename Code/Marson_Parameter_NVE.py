@@ -24,7 +24,7 @@ import subprocess
 import random
 import math
 import sys
-from MarsonNVE import MarsonNVE
+
 
 # General simulation parameters
 settings = {}
@@ -35,8 +35,8 @@ settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
 settings["initFile"] = 'None'
-settings['outputInterval'] = 10  # Number of time steps between data storage
-settings['therm_steps'] = 50  # Number of thermalization steps
+settings['outputInterval'] = 5  # Number of time steps between data storage
+settings['therm_steps'] = 100  # Number of thermalization steps
 settings['equil_steps'] = 100  # Number of equilibration steps
 
 
@@ -163,17 +163,17 @@ for initDict in parameterspace:
     else:
         print("\nLauing "+nameString)
 
-    # Write stderr and stdout on files
-    normalstdout = sys.stdout
-    normalstderr = sys.stderr
+    # Create list with command line arguments
+    initString = []
 
-    out = open(nameString+".outputs", "w")
-    sys.stderr = out
-    sys.stdout = out
+    for p, v in initDict.items():
+        initString.append('{}={}'.format(str(p), str(v)))
 
     # Run simulations
-    MarsonNVE(**initDict)
-
-    # Return stderr and stdout to normal stream
-    sys.stdout = normalstdout
-    sys.stderr = normalstderr
+    out = open(nameString+".outputs", "w")
+    proc = subprocess.Popen(["python",  "-u",
+                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVE.py",
+                             *initString],
+                            stdout=out,
+                            stderr=out)
+    proc.wait()

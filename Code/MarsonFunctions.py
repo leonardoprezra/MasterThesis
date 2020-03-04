@@ -27,7 +27,9 @@ settings['seed'] = 42  # Random number seed (HPMC, LANGEVIN)
 
 settings['sigma'] = settings['diameter']  # WCA-potential parameters (LANGEVIN)
 settings['epsilon'] = 1.0  # WCA-potential parameters (LANGEVIN)
-settings['kT'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
+settings['kT_therm'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
+settings['kT_npt'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
+settings['kT_equil'] = 1.0  # Temperature of the simulation (LANGEVIN, NPT)
 visc = 1/math.pi/6/settings['sigma'] # Solvent viscosity (LANGEVIN)
 settings['fric_coeff'] = 6*math.pi*visc*settings['sigma'] # Particle friction coefficient (LANGEVIN)
 
