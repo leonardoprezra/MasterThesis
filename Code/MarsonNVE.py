@@ -141,7 +141,7 @@ def MarsonNVE(**kwargs):
     # Computes thermodynamical properties of halo particles
     halo_thermo = hoomd.compute.thermo(group=group_halo)
 
-    l = hoomd.analyze.log(filename='{:s}_thermalization.log'.format(nameString),
+    l = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                           quantities=['volume',
                                       'momentum',
                                       'time',
@@ -155,7 +155,7 @@ def MarsonNVE(**kwargs):
                           period=outputInterval,
                           overwrite=True)
 
-    l = hoomd.dump.gsd(filename='{:s}_thermalization.gsd'.format(nameString),
+    l = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                        period=outputInterval,
                        group=hoomd.group.all(),
                        dynamic=['property',
@@ -169,27 +169,6 @@ def MarsonNVE(**kwargs):
 
     npt = hoomd.md.integrate.npt(
         group=rigid, kT=settings['kT'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
-
-    l = hoomd.analyze.log(filename='{:s}_compression.log'.format(nameString),
-                          quantities=['volume',
-                                      'momentum',
-                                      'time',
-                                      'potential_energy',
-                                      'kinetic_energy',
-                                      'translational_kinetic_energy',
-                                      'rotational_kinetic_energy',
-                                      'temperature',
-                                      'pressure',
-                                      'pair_lj_energy'],
-                          period=outputInterval,
-                          overwrite=True)
-
-    p = hoomd.dump.gsd(filename='{:s}_compression.gsd'.format(nameString),
-                       period=outputInterval,
-                       group=hoomd.group.all(),
-                       dynamic=['property',
-                                'momentum'],
-                       overwrite=True)
 
     density_compression = cluster.vol_cluster(
         dimensions)*total_N/system.box.get_volume()
@@ -212,27 +191,6 @@ def MarsonNVE(**kwargs):
     # # Equilibration at final volume fraction
     npt.disable()
     langevin.enable()
-
-    l = hoomd.analyze.log(filename='{:s}_equilibration.log'.format(nameString),
-                          quantities=['volume',
-                                      'momentum',
-                                      'time',
-                                      'potential_energy',
-                                      'kinetic_energy',
-                                      'translational_kinetic_energy',
-                                      'rotational_kinetic_energy',
-                                      'temperature',
-                                      'pressure',
-                                      'pair_lj_energy'],
-                          period=outputInterval,
-                          overwrite=True)
-
-    d = hoomd.dump.gsd(filename='{:s}_equilibration.gsd'.format(nameString),
-                       period=outputInterval,
-                       group=hoomd.group.all(),
-                       dynamic=['property',
-                                'momentum'],
-                       overwrite=True)
 
     hoomd.run(equil_steps)
 

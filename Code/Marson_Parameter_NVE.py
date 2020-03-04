@@ -36,8 +36,9 @@ settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
 settings["initFile"] = 'None'
 settings['outputInterval'] = 10  # Number of time steps between data storage
-settings['equil_steps'] = 50  # Number of equilibration steps
-settings['therm_steps'] = 100  # Number of thermalization steps
+settings['therm_steps'] = 50  # Number of thermalization steps
+settings['equil_steps'] = 100  # Number of equilibration steps
+
 
 nameFormat = "data_{poly}/" + settings['nameString']
 
@@ -147,8 +148,13 @@ for initDict in parameterspace:
     initDict['N'] = user_N
 
     # Create directories
-    if(not os.path.exists("data_{poly}/".format(**initDict))):
-        os.mkdir("data_{poly}/".format(**initDict))
+    try:
+        if(not os.path.exists("data_{poly}/".format(**initDict))):
+            os.mkdir("data_{poly}/".format(**initDict))
+    except OSError as e:
+        if e.errno != os.errno.EEXIST:
+            raise
+        pass
 
     # Print current working simulation
     if(os.path.exists(nameString+".outputs")):
