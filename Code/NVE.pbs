@@ -15,7 +15,7 @@ source activate localconda
 
 # change to temporary job data directory
 # located in node, between 400-900GB
-cd  $TMPDIR
+cd  $HPCVAULT
 
 # run simulation
 python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 3 13 &
@@ -25,6 +25,4 @@ python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 22 24 &
 
 wait
 
-# copy results
-cp -r data* $HPCVAULT
 
