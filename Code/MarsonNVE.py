@@ -158,6 +158,7 @@ def MarsonNVE(**kwargs):
     l = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                        period=outputInterval,
                        group=hoomd.group.all(),
+                       dynamic=['momentum','property'],
                        overwrite=True)
 
     hoomd.run(therm_steps)
