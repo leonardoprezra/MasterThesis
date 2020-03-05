@@ -41,5 +41,21 @@ for t in titles:
         fig1.savefig('./Temperature_{}_{}.png'.format(t, st))
         plt.clf()
 
+        fig2 = plt.figure(2)
+        ax2_1 = fig2.add_subplot(1, 1, 1)
+        ax2_1.set_title('{}\n{}'.format(t, st))
+        for d in data_names:
+            if d[0] == t and d[1].split('_')[-5] == st:
+                label = d[1].split('_')[-3]+'_'+d[1].split('_')[-2]
+                data = np.genfromtxt(fname=d[2], skip_header=True)
+                ax2_1.plot(data[:, 0], data[:, 9], label=label)
+
+        ax2_1.set_ylabel('Pressure / -')
+        ax2_1.set_xlabel('Time Step / -')
+        ax2_1.legend()
+        fig2.tight_layout()
+        fig2.savefig('./Pressure_{}_{}.png'.format(t, st))
+        plt.clf()
+
 
 # ax1_1.xaxis.set_major_locator(plt.MaxNLocator(8))
