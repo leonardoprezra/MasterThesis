@@ -1,28 +1,24 @@
 #!/bin/bash -l
 # Batch processing script
 
-#PBS -l nodes=1:ppn=4,walltime=00:02:00
+#PBS -l nodes=1:ppn=4,walltime=00:30:00
 #PBS -N rigidHoomd
-#PBS -t 55,60,65,70,75
+#PBS -t 70
 
 
 
 # Load required modules (compiler, ...)
 module load python/3.7-anaconda
-
+module load cuda/10.0
+module load cmake/3.11.1
 # Activate local environment where hoomd is installed
-source activate localconda3.6.9
+source activate localconda
 
 # change to temporary job data directory
 # located in node, between 400-900GB
 cd  $HPCVAULT
 
 # run simulation
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 3 13 &
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 13 18 &
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 18 22 &
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 22 24 &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 5 6 &
 
 wait
-
-

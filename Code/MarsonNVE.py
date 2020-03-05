@@ -33,7 +33,9 @@ from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster,
 
 import os
 import sys
+import time
 
+start_time = time.time()
 
 # Update settings from arguments
 for i in range(1, len(sys.argv)):
@@ -99,7 +101,7 @@ cluster = PartCluster(
 # 0.89 factor was chosen after study in 2D
 
 # Initialize execution context
-hoomd.context.initialize("")
+hoomd.context.initialize("--mode=gpu")
 print('[I] Initialize . . . . done.')
 
 # # Create snapshot for simulation
@@ -223,3 +225,10 @@ l = hoomd.dump.gsd(filename='{:s}_nve.gsd'.format(nameString),
 
 hoomd.run(nve_steps)
 '''
+
+
+end_time = time.time()
+
+sim_time = start_time - end_time
+
+print('TOTAL SIMULATIO TIME = {}'.format(sim_time))
