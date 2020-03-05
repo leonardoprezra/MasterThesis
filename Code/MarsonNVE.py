@@ -172,7 +172,7 @@ pressure = log.query('pressure')
 print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
 
 npt = hoomd.md.integrate.npt(
-    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=pressure*4, tauP=settings['tauP'])
+    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=pressure*6, tauP=settings['tauP'])
 
 density_compression = cluster.vol_cluster(
     dimensions)*total_N/system.box.get_volume()
@@ -196,10 +196,10 @@ print(cluster.vol_cluster(dimensions)*total_N/system.box.get_volume())
 # # Equilibration at final volume fraction
 npt.disable()
 langevin.enable()
-langevin.set_params(kT=settings['kT_equil'])
 
 
 for i in [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]:
+    langevin.set_params(kT=i)
     print('TEMPERATURE!!!!!!!!!!!!!!!!!!\n{}\n'.format(i))
     hoomd.run(equil_steps)
 
