@@ -172,7 +172,7 @@ pressure = log.query('pressure')
 print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
 
 npt = hoomd.md.integrate.npt(
-    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=pressure*6, tauP=settings['tauP'])
+    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=pressure*70, tauP=settings['tauP'])
 
 density_compression = cluster.vol_cluster(
     dimensions)*total_N/system.box.get_volume()
