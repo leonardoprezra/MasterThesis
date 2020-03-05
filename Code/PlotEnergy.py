@@ -11,7 +11,7 @@ data_names = []
 
 for root, dirs, files in os.walk(path, topdown=True):
     for name in files:
-        if name[-18:] == 'thermalization.log':
+        if name[-4:] == '.log':
             #val = [a for i in file.split('_') for a in i.split('-') if a[0]=='tstep']
             val = (root.split('/')[-1], name.split('.log')
                    [0], os.path.join(root, name))
