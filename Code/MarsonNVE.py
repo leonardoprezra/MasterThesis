@@ -26,7 +26,6 @@ langevin
 
 import hoomd
 import hoomd.md
-import hoomd.hpmc
 import random
 import math
 from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos
@@ -101,7 +100,7 @@ cluster = PartCluster(
 # 0.89 factor was chosen after study in 2D
 
 # Initialize execution context
-hoomd.context.initialize("--mode=gpu")
+hoomd.context.initialize("")  # "--mode=gpu"
 print('[I] Initialize . . . . done.')
 
 # # Create snapshot for simulation
@@ -143,37 +142,42 @@ langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
 # Computes thermodynamical properties of halo particles
 halo_thermo = hoomd.compute.thermo(group=group_halo)
 
-l = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
-                      quantities=['volume',
-                                  'momentum',
-                                  'time',
-                                  'potential_energy',
-                                  'kinetic_energy',
-                                  'translational_kinetic_energy',
-                                  'rotational_kinetic_energy',
-                                  'temperature',
-                                  'pressure',
-                                  'pair_lj_energy'],
-                      period=outputInterval,
-                      overwrite=True)
+log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
+                        quantities=['volume',
+                                    'momentum',
+                                    'time',
+                                    'potential_energy',
+                                    'kinetic_energy',
+                                    'translational_kinetic_energy',
+                                    'rotational_kinetic_energy',
+                                    'temperature',
+                                    'pressure',
+                                    'pair_lj_energy'],
+                        period=outputInterval,
+                        overwrite=True)
 
-l = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
-                   period=outputInterval,
-                   group=hoomd.group.all(),
-                   dynamic=['momentum', 'property'],
-                   overwrite=True)
+gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
+                     period=outputInterval,
+                     group=hoomd.group.all(),
+                     dynamic=['momentum', 'property'],
+                     overwrite=True)
 
 hoomd.run(therm_steps)
 
 # # Compression
 langevin.disable()
 
+# Retrieve current pressure value
+pressure = log.query('pressure')
+print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
+
 npt = hoomd.md.integrate.npt(
-    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
+    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=pressure*4, tauP=settings['tauP'])
 
 density_compression = cluster.vol_cluster(
     dimensions)*total_N/system.box.get_volume()
 density_compression_control = density_compression
+
 
 while density_compression < density:
     hoomd.run(10, quiet=True)
@@ -194,41 +198,14 @@ npt.disable()
 langevin.enable()
 langevin.set_params(kT=settings['kT_equil'])
 
-hoomd.run(equil_steps)
 
-'''
-langevin.disable()
-
-# NVE simulation
-nve = hoomd.md.integrate.nve(group=rigid)
-
-l = hoomd.analyze.log(filename='{:s}_nve.log'.format(nameString),
-                        quantities=['volume',
-                                    'momentum',
-                                    'time',
-                                    'potential_energy',
-                                    'kinetic_energy',
-                                    'translational_kinetic_energy',
-                                    'rotational_kinetic_energy',
-                                    'temperature',
-                                    'pressure',
-                                    'pair_lj_energy'],
-                        period=outputInterval,
-                        overwrite=True)
-
-l = hoomd.dump.gsd(filename='{:s}_nve.gsd'.format(nameString),
-                    period=outputInterval,
-                    group=hoomd.group.all(),
-                    dynamic=['property',
-                            'momentum'],
-                    overwrite=True)
-
-hoomd.run(nve_steps)
-'''
+for i in [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]:
+    print('TEMPERATURE!!!!!!!!!!!!!!!!!!\n{}\n'.format(i))
+    hoomd.run(equil_steps)
 
 
 end_time = time.time()
 
-sim_time = start_time - end_time
+sim_time = end_time - start_time
 
 print('TOTAL SIMULATIO TIME = {}'.format(sim_time))
