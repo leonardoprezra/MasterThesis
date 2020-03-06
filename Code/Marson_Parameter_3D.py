@@ -28,7 +28,7 @@ import sys
 
 # General simulation parameters
 settings = {}
-settings['N'] = 100  # N**2 or N**3 are the number of PSCs
+settings['N'] = 16  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['sigma'] = 1.0  # WCA-potential parameters
 settings['epsilon'] = 1.0  # WCA-potential parameters
@@ -49,13 +49,7 @@ parameterspace = []
 dens = int(sys.argv[1])/100
 tstep_multiplier = 0.003
 
-start_N_cluster = int(sys.argv[2])
-end_N_cluster = int(sys.argv[3])
-
-'''
-for dens in dens_values:
-    for tstep_multiplier in tstep_values:
-        parameters = [
+parameterspace= [
             {**settings,
              'integrator': 'nve',
              'density': dens,
@@ -103,21 +97,19 @@ for dens in dens_values:
              }
         ]
 
-        parameterspace += parameters
 
-for dens in dens_values:
-    for tstep_multiplier in tstep_values:
-        for i in range(3, 50, 1):
-            parameterspace += [
-                {**settings,
-                 'integrator': 'nve',
-                 'density': dens,
-                 'poly': '3Dspheres',
-                 'dimensions': 3,
-                 'N_cluster': i,
-                 'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-                 # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-                 }]
+
+for i in [5,7,9,10,11,13,14]:
+    parameterspace += [
+        {**settings,
+            'integrator': 'nve',
+            'density': dens,
+            'poly': '3Dspheres',
+            'dimensions': 3,
+            'N_cluster': i,
+            'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
+            # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
+            }]
 '''
 
 for i in range(start_N_cluster, end_N_cluster, 1):
@@ -132,7 +124,7 @@ for i in range(start_N_cluster, end_N_cluster, 1):
             # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
          }]
 
-
+'''
 # Run Simulations
 for initDict in parameterspace:
 

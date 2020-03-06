@@ -159,7 +159,7 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      period=outputInterval,
                      group=hoomd.group.all(),
-                     dynamic=['momentum', 'property'],
+                     dynamic=['momentum'],
                      overwrite=True)
 
 hoomd.run(therm_steps)
@@ -172,7 +172,7 @@ pressure = log.query('pressure')
 print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
 
 npt = hoomd.md.integrate.npt(
-    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=pressure*70, tauP=settings['tauP'])
+    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
 
 density_compression = cluster.vol_cluster(
     dimensions)*total_N/system.box.get_volume()
@@ -198,7 +198,7 @@ npt.disable()
 langevin.enable()
 
 
-for i in [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]:
+for i in [1, 0.9, 0.8, 0.7, 0.6]:
     langevin.set_params(kT=i)
     print('TEMPERATURE!!!!!!!!!!!!!!!!!!\n{}\n'.format(i))
     hoomd.run(equil_steps)
@@ -208,4 +208,4 @@ end_time = time.time()
 
 sim_time = end_time - start_time
 
-print('TOTAL SIMULATIO TIME = {}'.format(sim_time))
+print('TOTAL SIMULATION TIME [s] = \n{}'.format(sim_time))
