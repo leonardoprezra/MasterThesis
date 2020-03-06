@@ -104,6 +104,7 @@ for t, st1, st2 in titles_subtitle:
 
     ax1_1.set_ylabel('Temperature / -')
     ax1_1.set_xlabel('Time Step / -')
+    ax1_1.set_ylim(ymax=10)
     ax1_1.legend()
     fig1.tight_layout()
     fig1.savefig('thermo_plots/Temperature_{}_{}_{}.png'.format(t, st1, st2))
@@ -124,6 +125,7 @@ for t, st1, st2 in titles_subtitle:
 
     ax2_1.set_ylabel('Pressure / -')
     ax2_1.set_xlabel('Time Step / -')
+    ax2_1.set_ylim(ymax=10)
     ax2_1.legend()
     fig2.tight_layout()
     fig2.savefig('thermo_plots/Pressure_{}_{}_{}.png'.format(t, st1, st2))
@@ -144,6 +146,7 @@ for t, st1, st2 in titles_subtitle:
 
     ax3_1.set_ylabel('Energy / -')
     ax3_1.set_xlabel('Time Step / -')
+    # ax3_1.set_ylim(ymax=10)
     ax3_1.legend()
     fig3.tight_layout()
     fig3.savefig('thermo_plots/Energy{}_{}_{}.png'.format(t, st1, st2))
