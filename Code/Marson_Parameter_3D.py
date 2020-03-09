@@ -99,7 +99,7 @@ parameterspace= [
 
 
 
-for i in [5,7,9,10,11,13,14]:
+for i in [15,16,17,18,19,20,21,22]: #[5,7,9,10,11,13,14]:
     parameterspace += [
         {**settings,
             'integrator': 'nve',
