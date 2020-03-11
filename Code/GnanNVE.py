@@ -28,7 +28,7 @@ import hoomd
 import hoomd.md
 import random
 import math
-from GnanFunctions import core_properties, settings, PartCluster, create_snapshot_soft, unif_pos
+from GnanFunctions import core_properties, settings, PartCluster, create_snapshot_soft, unif_pos, hertzian
 
 import os
 import sys
@@ -132,15 +132,17 @@ FENE.bond_coeff.set('FENE', k=15, r0=1.5, sigma=halo_diam,
                     epsilon=settings['epsilon'])
 
 # Apply Hertzian bonds
-
+HERTZIAN = hoomd.md.bond.table(width=1000)
+HERTZIAN.bond_coeff.set('HERTZIAN', func=hertzian, rmin=0, rmax=(cluster.sphere_diam -
+                                                                 halo_diam), coeff=dict(U=1000, sigma_H=(cluster.sphere_diam-halo_diam)))
 
 # # Thermalization
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
-rigid = hoomd.group.rigid_center()
+all_part = hoomd.group.all()
 langevin = hoomd.md.integrate.langevin(
-    group=rigid, kT=settings['kT_therm'], seed=settings['seed'])
+    group=all_part, kT=settings['kT_therm'], seed=settings['seed'])
 
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
 langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
@@ -180,7 +182,7 @@ pressure = log.query('pressure')
 print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
 
 npt = hoomd.md.integrate.npt(
-    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
+    group=all_part, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
 
 density_compression = cluster.vol_cluster(
     dimensions)*total_N/system.box.get_volume()

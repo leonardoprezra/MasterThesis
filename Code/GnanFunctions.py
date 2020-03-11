@@ -9,13 +9,13 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 2  # N**2 or N**3 are the number of PSCs
+settings['N'] = 4  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = '2Dspheres'  # Type of polyhedron
+settings['poly'] = '3Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.5  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
-settings['N_cluster'] = 4  # number of spheres in cluster
+settings['N_cluster'] = 6  # number of spheres in cluster
 
 settings['integrator'] = 'nve'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
@@ -315,6 +315,15 @@ def create_snapshot_soft(cluster, N, density, dimensions=3):
 
     total_N = len(system.particles)  # total number of clusters
 
+    body_flags = set([p.body for p in system.particles])
+
+    i = -3
+    for b in body_flags:
+        for p in system.particles:
+            if p.body == b:
+                p.body = i
+        i -= 1
+
     for i in range(len(system.bonds)):
         print(system.bonds[i])
 
@@ -389,7 +398,7 @@ def hertzian(r, rmin, rmax, U, sigma_H):
 
     Parameters
     ----------
-    cluster : PartCluster
+    r : PartCluster
         Object that contains cluster information.
     dimensions : int
         Dimensions of the simulation 2D or 3D.
@@ -408,4 +417,6 @@ def hertzian(r, rmin, rmax, U, sigma_H):
         Rigid bodies.
     '''
     V = U*(1-r/sigma_H)**(5/2)
-    F = -5/2 * U*(1-r/sigma_H)**(3/2)\
+    F = -5/2 * U*(1-r/sigma_H)**(3/2)*-1/sigma_H
+
+    return (V, F)
