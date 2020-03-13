@@ -9,13 +9,13 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 5  # N**2 or N**3 are the number of PSCs
+settings['N'] = 4  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
 settings['poly'] = '3Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.5  # Volume fraction
-settings['dimensions'] = 3  # 2d or 3d
-settings['N_cluster'] = 9  # number of spheres in cluster
+settings['dimensions'] = 2  # 2d or 3d
+settings['N_cluster'] = 6  # number of spheres in cluster
 
 settings['integrator'] = 'nve'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
@@ -30,8 +30,9 @@ settings['epsilon'] = 1.0  # WCA-potential parameters (LANGEVIN)
 settings['kT_therm'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
 settings['kT_npt'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
 settings['kT_equil'] = 1.0  # Temperature of the simulation (LANGEVIN, NPT)
-visc = 1/math.pi/6/settings['sigma'] # Solvent viscosity (LANGEVIN)
-settings['fric_coeff'] = 6*math.pi*visc*settings['sigma'] # Particle friction coefficient (LANGEVIN)
+visc = 1/math.pi/6/settings['sigma']  # Solvent viscosity (LANGEVIN)
+# Particle friction coefficient (LANGEVIN)
+settings['fric_coeff'] = 6*math.pi*visc*settings['sigma']
 
 settings['tau'] = 1.0  # Coupling constant for the thermostat (NPT)
 settings['pressure'] = 5  # Isotropic pressure set point for barostat (NPT)
@@ -45,7 +46,9 @@ settings['nve_steps'] = 100  # Number of thermalization steps
 
 settings['outputInterval'] = 1  # Number of time steps between data storage
 a = math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
-settings['time_step'] = 0.007*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
+# Time step of MD simulations
+settings['time_step'] = 0.007 * \
+    math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
 
 # Core particle properties
 
@@ -189,10 +192,10 @@ class PartCluster:
         Diameter of halo sphere/
     poly_key : str
         Type of cluster.
-    inertia: np.array
-        Diagonal moment of inertia of the cluster.
     rot_matrix : np.array
         Rotation matrix to rotate from local coordinates to coordinates of principal axis.
+    halo_mass : float
+        Mass of each halo particles
 
     Methods
     -------
@@ -215,11 +218,7 @@ class PartCluster:
             poly_key), d=halo_diam, N_spheres=N_cluster)  # Diameter of sphere circunscribing PSC + halo_diam
         self.halo_diam = halo_diam
         self.poly_key = poly_key
-        self.inertia, self.rot_matrix = mom_inertia(
-            particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
-                                                       # Rotation matrix to rotate from global coordinates to principal axes coordinates
-        
-        self.core_coord = quat_rotation(particles=self.core_coord, rot_matrix=self.rot_matrix) # Coordinates of particles in cluster (principal axes coordinates)
+        self.halo_mass = halo_mass  # Mass of each halo particles
 
     def vol_cluster(self, dimensions):
         if dimensions == 2:
@@ -228,59 +227,11 @@ class PartCluster:
             return math.pi / 6 * self.sphere_diam**3 * 0.89
 
 
-# Moment of Inertia function
-
-
-def mom_inertia(particles, mass):
-    '''Calculates moment of inertia of rigid bodies.
-
-    Parameters
-    ----------
-    particles : list
-        Coordinates of particles in the cluster.
-    mass : float
-        Mass of halo sphere.
-
-    Returns
-    -------
-    mom_inertia_princ : np.array
-        Principal moment of inertia of the cluster.
-    rot_matrix : np.array
-        Rotation matrix to rotate from local coordinates to coordinates of principal axis.
-    '''
-    Ixx = 0.0
-    Iyy = 0.0
-    Izz = 0.0
-    Ixy = 0.0
-    Iyz = 0.0
-    Ixz = 0.0
-
-    for coord in particles:
-        Ixx += (coord[1]**2 + coord[2]**2) * mass
-        Iyy += (coord[0]**2 + coord[2]**2) * mass
-        Izz += (coord[0]**2 + coord[1]**2) * mass
-        Ixy += -coord[0]*coord[1]*mass
-        Iyz += -coord[1]*coord[2]*mass
-        Ixz += -coord[0]*coord[2]*mass
-
-    inertia_matrix = np.array([[Ixx, Ixy, Ixz],
-                               [Ixy, Iyy, Iyz],
-                               [Ixz, Iyz, Izz]])
-
-    mom_inertia_princ, princ_axis = LA.eig(inertia_matrix)
-
-    rot_matrix = np.transpose(princ_axis) 
-    #rotation_matrix = princ_axis # Use to rotate on the opposite direction
-    
-    quaternion = R.from_matrix(rot_matrix).as_quat()
-
-    return mom_inertia_princ, rot_matrix
-
 # Create snapshot for system initialization
 
 
-def create_snapshot(cluster, N, dimensions=3):
-    '''Create snapshot from lattice and initializes it.
+def create_snapshot_soft(cluster, N, density, dimensions=3):
+    '''Create snapshot of soft particles and initializes it.
 
     Parameters
     ----------
@@ -290,6 +241,9 @@ def create_snapshot(cluster, N, dimensions=3):
         Dimensions of the simulation 2D or 3D.
     N : int
         Total number of clusters is N**2 or N**3.
+    density : float
+        target density of the system.
+
 
 
     Returns
@@ -299,73 +253,83 @@ def create_snapshot(cluster, N, dimensions=3):
     rigid
         Rigid bodies.
     '''
-    part_per_cell = 1
-    part_position = [[0, 0, 0]]
-    part_orientation = [[1, 0, 0, 0]]
-
-    n = [N, N, N]
-
-    a1, a2, a3 = [[1.1*cluster.sphere_diam, 0, 0],
-                  [0, 1.1*cluster.sphere_diam, 0],
-                  [0, 0, 1.1*cluster.sphere_diam]]
+    boxLen = math.pow(cluster.vol_cluster(dimensions) * N**3 / density, 1/3)
 
     if dimensions == 2:
-        a1, a2, a3 = [[1.1*cluster.sphere_diam, 0, 0],
-                      [0, 1.1*cluster.sphere_diam, 0],
-                      [0, 0, 1]]
+        boxLen = math.sqrt(cluster.vol_cluster(dimensions) * N**2 / density)
 
-        n = [N, N]
-    '''
-    if cluster.poly_key == '2Dspheres' and cluster.N_cluster == 3:
-        a1, a2, a3 = [[3*cluster.halo_diam, 0, 0],
-                      [0, math.sin(math.pi/3)*cluster.halo_diam*2, 0],
-                      [0, 0, 1]]
-        part_per_cell = 2
-        part_position = [[-3*cluster.halo_diam/4, -cluster.halo_diam*math.sin(math.pi/3)/6, 0],
-                         [3*cluster.halo_diam/4, cluster.halo_diam*math.sin(math.pi/3)/6, 0]]
-        part_orientation = [[-math.cos(math.pi/6/2), 0, 0, math.sin(math.pi/6/2)],
-                            [-math.cos(math.pi/2/2), 0, 0, math.sin(math.pi/2/2)]]
-    '''
-    # Creates lattice
-    uc = hoomd.lattice.unitcell(N=part_per_cell,
-                                a1=a1,
-                                a2=a2,
-                                a3=a3,
-                                dimensions=dimensions,
-                                position=part_position,
-                                type_name=part_per_cell*['core'],
-                                mass=part_per_cell*[cluster.core_mass],
-                                diameter=part_per_cell*[cluster.core_diam],
-                                moment_inertia=part_per_cell*[cluster.inertia],
-                                orientation=part_orientation)
+    # Creates snapshot with first cluster
+    snapshot = hoomd.data.make_snapshot(N=1+cluster.N_cluster,
+                                        particle_types=['core', 'halo'],
+                                        bond_types=['FENE', 'HERTZIAN'],
+                                        box=hoomd.data.boxdim(
+                                            L=cluster.sphere_diam * 1.1, dimensions=dimensions)
+                                        )
+
+    # Properties of core particles
+    snapshot.particles.typeid[0] = 0
+    snapshot.particles.mass[0] = 0
+    snapshot.particles.position[0] = (0, 0, 0)
+    snapshot.particles.diameter[0] = cluster.sphere_diam*0.1
+    snapshot.particles.body[0] = -2
+
+    # Properties of halo particles
+    snapshot.particles.typeid[1:] = 1
+
+    for i in range(1, snapshot.particles.N):
+        snapshot.particles.mass[i] = cluster.halo_mass
+        # i goes one index higher than the lenght of coord
+        snapshot.particles.position[i] = cluster.core_coord[i-1]
+        snapshot.particles.diameter[i] = cluster.halo_diam
+        snapshot.particles.body[i] = -2
+
+    print(snapshot.particles.body)
+    # Set FENE bonds among halo particles
+    snapshot.bonds.resize(cluster.N_cluster)
+    snapshot.bonds.group[:] = [
+        [i, i+1] for i in range(1, snapshot.particles.N-1)] + [[1, snapshot.particles.N-1]]
+
+    # Set Hertzian bonds among halo and core particles
+    snapshot.bonds.resize(cluster.N_cluster*2)
+    snapshot.bonds.group[cluster.N_cluster:] = [[0, i]
+                                                for i in range(1, snapshot.particles.N)]
+    snapshot.bonds.typeid[cluster.N_cluster:] = 1
+    print(snapshot.bonds.types)
+    print(snapshot.bonds.group)
+    print(snapshot.bonds.typeid)
+    print(snapshot.particles.typeid)
+    print(snapshot.particles.body)
+
+    # Replicates cluster in snapshot
+
+    if dimensions == 2:
+        snapshot.replicate(N, N, 1)
+    elif dimensions == 3:
+        snapshot.replicate(N, N, N)
+
+    print(snapshot.particles.N)
+    print(snapshot.particles.body)
 
     # Initialize sys configuration
-    system = hoomd.init.create_lattice(unitcell=uc, n=n)
+    system = hoomd.init.read_snapshot(snapshot)
 
     total_N = len(system.particles)  # total number of clusters
 
-    system.particles.types.add('halo')
+    body_flags = set([p.body for p in system.particles])
 
-    # Create rigid clusters
-    rigid = hoomd.md.constrain.rigid()
+    i = -3
+    for b in body_flags:
+        for p in system.particles:
+            if p.body == b:
+                p.body = i
+        i -= 1
 
-    rigid.set_param('core',
-                    types=cluster.core_type,
-                    positions=cluster.core_coord)  # Set constituent particles of the rigid body
-
-    rigid.create_bodies()
-    rigid.validate_bodies()
-
-    # Set particle diameters
-    group_halo = hoomd.group.type('halo')
-    group_core = hoomd.group.type('core')
-
-    for p in group_halo:
-        p.diameter = cluster.halo_diam
+    for i in range(len(system.bonds)):
+        print(system.bonds[i])
 
     print('[II] Snapshot . . . . done.')
 
-    return (system, rigid, group_core, group_halo, total_N)
+    return (system, total_N)
 
 
 # Distribute points uniformly on a sphere
@@ -405,7 +369,7 @@ def unif_pos(N, d):
         z = np.sin(phi) * r
         points.append([x, y, z])
         i += 1
-    
+
     # Find smallest distance between points
     min_dist = math.sqrt((points[0][0]-points[1][0])**2 + (points[0]
                                                            [1]-points[1][1])**2 + (points[0][2]-points[1][2])**2)
@@ -416,7 +380,7 @@ def unif_pos(N, d):
                              (pi[1]-pj[1])**2 + (pi[2]-pj[2])**2)
             if min_dist > dist and dist != 0:
                 min_dist = dist
-    
+
     # Rescale unit sphere
     for i in range(len(points)):
         points[i] = [d/min_dist * b for b in points[i]]
@@ -426,28 +390,33 @@ def unif_pos(N, d):
 
     return points, core_diam, sphere_diam
 
-# Rotate points with rotation matrix
-def quat_rotation(particles, rot_matrix):
-    '''Rotate point coordinates according to given rotation matrix.
+
+# Hertzian potential
+
+def hertzian(r, rmin, rmax, U, sigma_H):
+    '''Create snapshot of soft particles and initializes it.
 
     Parameters
     ----------
-    particles : list
-        Coordinates of particles in the cluster.
-    rot_matrix : np.array
-        Rotation matrix used for rotation.
+    r : PartCluster
+        Object that contains cluster information.
+    dimensions : int
+        Dimensions of the simulation 2D or 3D.
+    N : int
+        Total number of clusters is N**2 or N**3.
+    density : float
+        target density of the system.
+
+
 
     Returns
     -------
-    new_particles : list
-        Rotated coordinates.
+    system
+        System_data object of hoomd.
+    rigid
+        Rigid bodies.
     '''
+    V = U*(1-r/sigma_H)**(5/2)
+    F = -5/2 * U*(1-r/sigma_H)**(3/2)*-1/sigma_H
 
-    particles = np.array(particles)
-    new_particles = []
-
-    for p in particles:
-        rot_p = np.matmul(rot_matrix,p)
-        new_particles.append(tuple(rot_p.tolist()))
-
-    return new_particles
+    return (V, F)

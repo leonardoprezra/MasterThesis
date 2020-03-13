@@ -28,7 +28,7 @@ import hoomd
 import hoomd.md
 import random
 import math
-from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos
+from GnanFunctions import core_properties, settings, PartCluster, create_snapshot_soft, unif_pos, hertzian
 
 import os
 import sys
@@ -105,8 +105,8 @@ print('[I] Initialize . . . . done.')
 
 # # Create snapshot for simulation
 # Lattice as starting configuration
-system, rigid, group_core, group_halo, total_N = create_snapshot(
-    cluster=cluster, dimensions=dimensions, N=N)
+system, total_N = create_snapshot_soft(
+    cluster=cluster, dimensions=dimensions, N=N, density=density)
 
 if dimensions == 2:
     boxLen = math.sqrt(cluster.vol_cluster(dimensions) * total_N / density)
@@ -126,13 +126,23 @@ lj.set_params(mode='shift')
 lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
 lj.pair_coeff.set(['halo', 'core'], 'core', epsilon=0, sigma=0)
 
+# Apply FENE bonds
+FENE = hoomd.md.bond.fene()
+FENE.bond_coeff.set('FENE', k=15, r0=1.5, sigma=halo_diam,
+                    epsilon=settings['epsilon'])
+
+# Apply Hertzian bonds
+HERTZIAN = hoomd.md.bond.table(width=1000)
+HERTZIAN.bond_coeff.set('HERTZIAN', func=hertzian, rmin=0, rmax=(cluster.sphere_diam -
+                                                                 halo_diam), coeff=dict(U=1000, sigma_H=(cluster.sphere_diam-halo_diam)))
+
 # # Thermalization
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
-rigid = hoomd.group.rigid_center()
+all_part = hoomd.group.all()
 langevin = hoomd.md.integrate.langevin(
-    group=rigid, kT=settings['kT_therm'], seed=settings['seed'])
+    group=all_part, kT=settings['kT_therm'], seed=settings['seed'])
 
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
 langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
@@ -140,7 +150,7 @@ langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
 # hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
 #                overwrite=True, period=None)
 # Computes thermodynamical properties of halo particles
-halo_thermo = hoomd.compute.thermo(group=group_halo)
+#halo_thermo = hoomd.compute.thermo(group=group_halo)
 
 log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                         quantities=['volume',
@@ -172,7 +182,7 @@ pressure = log.query('pressure')
 print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
 
 npt = hoomd.md.integrate.npt(
-    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
+    group=all_part, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
 
 density_compression = cluster.vol_cluster(
     dimensions)*total_N/system.box.get_volume()
