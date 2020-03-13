@@ -198,7 +198,7 @@ npt.disable()
 langevin.enable()
 
 
-for i in [1, 0.9, 0.8, 0.7, 0.6]:
+for i in [1]:
     langevin.set_params(kT=i)
     print('TEMPERATURE!!!!!!!!!!!!!!!!!!\n{}\n'.format(i))
     hoomd.run(equil_steps)
