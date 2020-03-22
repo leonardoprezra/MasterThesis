@@ -60,7 +60,7 @@ def slicegsd(frames, inFN, outFN):
 
     new_t = gsd.hoomd.open(name=outFN, mode='wb')
 
-    new_t.extend(t[-10:])
+    new_t.extend(t[-frames:])
 
 # Convert .gsd to .pos
 
@@ -79,20 +79,36 @@ def convert2pos(inFN):
     '''
     t = gsd.hoomd.open(name=inFN, mode='rb')
 
+    # Diameter of core particles
+    for i in range(t[0].particles.N):
+        if t[0].particles.typeid[i] == 0:
+            diam_core = t[0].particles.diameter[i]
+            break
+    
+    # Diameter of halo particles
+    for i in range(t[0].particles.N):
+        if t[0].particles.typeid[i] == 1:
+            diam_halo = t[0].particles.diameter[i]
+            break
+
     with open(inFN[:-3] + 'pos', 'w') as file1:
 
         for f in t:
 
             box = f.configuration.box
             file1.write("box {:f} {:f} {:f}\n".format(box[0], box[1], box[2]))
+            file1.write('def A "sphere {:f} FF0000"'.format(diam_core)) # Red
+            file1.write('def B "sphere {:f} 0000FF"'.format(diam_halo)) # Blue
+
+            
 
             for i in range(f.particles.N):
                 if f.particles.typeid[i] == 0:
-                    file1.write("sphere {:f} {:s} ".format(f.particles.diameter[i], 'FF0000') + "{:f} {:f} {:f}\n".format(
+                    file1.write("A " + "{:f} {:f} {:f}\n".format(
                         *f.particles.position[i]))
 
                 elif f.particles.typeid[i] == 1:
-                    file1.write("sphere {:f} {:s} ".format(f.particles.diameter[i], '0000FF') + "{:f} {:f} {:f}\n".format(
+                    file1.write("B " + "{:f} {:f} {:f}\n".format(
                         *f.particles.position[i]))
 
             file1.write("eof\n")
