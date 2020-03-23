@@ -21,12 +21,11 @@ dir_name = 'data_slice_pos/'
 # Command line argument parsing
 parser = argparse.ArgumentParser(
     description='Extract the last <frame_num> of the <in_file> and saves them as .gsd and .pos.')
-parser.add_argument('frame_num', type=int,
+parser.add_argument('-n', '--frame-number', type=int, dest='frame_num',
                     help='number of frames to extract from the end of the .gsd file')
-parser.add_argument('in_file', help='input .gsd file')
+parser.add_argument('-i', '--in-file', type=str, nargs='+', dest='in_file', help='input .gsd file')
 
 args = parser.parse_args()
-
 
 # Create directories
 try:
@@ -36,6 +35,7 @@ except OSError as e:
     if e.errno != 17:
         raise
     pass
+
 
 # Extract frames from .gsd file
 
@@ -113,10 +113,10 @@ def convert2pos(inFN):
 
             file1.write("eof\n")
 
+for in_file in args.in_file:
+    # Output .gsd file name
+    outFN = dir_name + in_file.split('/')[-1]
 
-# Output .gsd file name
-outFN = dir_name + args.in_file.split('/')[-1]
+    slicegsd(frames=args.frame_num, inFN=in_file, outFN=outFN)
 
-slicegsd(frames=args.frame_num, inFN=args.in_file, outFN=outFN)
-
-convert2pos(inFN=outFN)
+    convert2pos(inFN=outFN)
