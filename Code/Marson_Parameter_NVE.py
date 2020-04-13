@@ -28,7 +28,7 @@ import sys
 
 # General simulation parameters
 settings = {}
-settings['N'] = 3  # N**2 or N**3 are the number of PSCs
+settings['N'] = 10  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['sigma'] = 1.0  # WCA-potential parameters
 settings['epsilon'] = 1.0  # WCA-potential parameters
