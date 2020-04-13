@@ -28,17 +28,17 @@ import sys
 
 # General simulation parameters
 settings = {}
-settings['N'] = 100  # N**2 or N**3 are the number of PSCs
+settings['N'] = 3  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['sigma'] = 1.0  # WCA-potential parameters
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
-settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}_ratio-{ratio}'
 settings["initFile"] = 'None'
-settings['outputInterval'] = 4000  # Number of time steps between data storage
-settings['therm_steps'] = 40000  # Number of thermalization steps
-settings['equil_steps'] = 2000000  # Number of equilibration steps
-
+settings['outputInterval'] = 4 # Number of time steps between data storage
+settings['therm_steps'] = 40  # Number of thermalization steps
+settings['equil_steps'] = 80  # Number of equilibration steps
+settings['ratio'] = 1
 
 nameFormat = "data_{poly}/" + settings['nameString']
 
@@ -47,7 +47,7 @@ nameFormat = "data_{poly}/" + settings['nameString']
 parameterspace = []
 
 dens = int(sys.argv[1])/100
-tstep_multiplier = 0.003
+tstep_multiplier = 0.001
 
 start_N_cluster = int(sys.argv[2])
 end_N_cluster = int(sys.argv[3])
@@ -172,7 +172,7 @@ for initDict in parameterspace:
     # Run simulations
     out = open(nameString+".outputs", "w")
     proc = subprocess.Popen(["python",  "-u",
-                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVE.py",
+                             "MarsonNVE.py", # "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVE.py",
                              *initString],
                             stdout=out,
                             stderr=out)

@@ -11,21 +11,22 @@ settings = {}
 
 settings['N'] = 5  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = '3Dspheres'  # Type of polyhedron
+settings['poly'] = '2Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.5  # Volume fraction
-settings['dimensions'] = 3  # 2d or 3d
-settings['N_cluster'] = 9  # number of spheres in cluster
+settings['dimensions'] = 2  # 2d or 3d
+settings['N_cluster'] = 3  # number of spheres in cluster
+settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 settings['integrator'] = 'nve'  # Integrator
-settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}_ratio-{ratio}'
 settings["initFile"] = "None"
 
 settings['max_move'] = 0.002  # Maximum move displacement (HPMC)
 settings['max_rot'] = 0.4  # Maximum move rotation (HPMC)
 settings['seed'] = 42  # Random number seed (HPMC, LANGEVIN)
 
-settings['sigma'] = settings['diameter']  # WCA-potential parameters (LANGEVIN)
+settings['sigma'] = 1.0  # WCA-potential parameters (LANGEVIN)
 settings['epsilon'] = 1.0  # WCA-potential parameters (LANGEVIN)
 settings['kT_therm'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
 settings['kT_npt'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
@@ -34,18 +35,18 @@ visc = 1/math.pi/6/settings['sigma'] # Solvent viscosity (LANGEVIN)
 settings['fric_coeff'] = 6*math.pi*visc*settings['sigma'] # Particle friction coefficient (LANGEVIN)
 
 settings['tau'] = 1.0  # Coupling constant for the thermostat (NPT)
-settings['pressure'] = 5  # Isotropic pressure set point for barostat (NPT)
+settings['pressure'] = 50  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
 settings['hpmc_steps'] = 10  # Number of time steps of hpmc simulation
-settings['npt_steps'] = 100  # Number of steps required during compression
-settings['equil_steps'] = 100  # Number of equilibration steps
-settings['therm_steps'] = 100  # Number of thermalization steps
-settings['nve_steps'] = 100  # Number of thermalization steps
+settings['npt_steps'] = 40  # Number of steps required during compression
+settings['equil_steps'] = 40  # Number of equilibration steps
+settings['therm_steps'] = 40  # Number of thermalization steps
+settings['nve_steps'] = 40  # Number of thermalization steps
 
-settings['outputInterval'] = 1  # Number of time steps between data storage
+settings['outputInterval'] = 4  # Number of time steps between data storage
 a = math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
-settings['time_step'] = 0.007*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
+settings['time_step'] = 0.005*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
 # Core particle properties
 
@@ -200,9 +201,9 @@ class PartCluster:
         Volume (area in 2D) of the cluster
     '''
 
-    def __init__(self, poly_key, N_cluster, halo_diam, halo_mass):
+    def __init__(self, poly_key, N_cluster, halo_diam, halo_mass, ratio=1):
         self.core_diam = core_properties(poly='{}_diam'.format(
-            poly_key), d=halo_diam, N_spheres=N_cluster)  # Diameter of core particles
+            poly_key), d=halo_diam, N_spheres=N_cluster) + halo_diam*(1-ratio) # Diameter of core particles
         self.core_type = core_properties(poly='{}_type'.format(
             poly_key), N_spheres=N_cluster)  # List to create clusters
         self.core_coord = core_properties(poly='{}_coord'.format(
@@ -213,7 +214,7 @@ class PartCluster:
             poly_key), N_spheres=N_cluster)  # Number of particles in cluster
         self.sphere_diam = core_properties(poly='{}_sphere_diam'.format(
             poly_key), d=halo_diam, N_spheres=N_cluster)  # Diameter of sphere circunscribing PSC + halo_diam
-        self.halo_diam = halo_diam
+        self.halo_diam = halo_diam * ratio
         self.poly_key = poly_key
         self.inertia, self.rot_matrix = mom_inertia(
             particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
@@ -223,9 +224,9 @@ class PartCluster:
 
     def vol_cluster(self, dimensions):
         if dimensions == 2:
-            return math.pi / 4 * self.sphere_diam**2 * 0.89
+            return math.pi/4 * (self.core_diam**2 + self.N_cluster*self.halo_diam**2)
         elif dimensions == 3:
-            return math.pi / 6 * self.sphere_diam**3 * 0.89
+            return math.pi/6 * (self.core_diam**3 + self.N_cluster*self.halo_diam**3)
 
 
 # Moment of Inertia function

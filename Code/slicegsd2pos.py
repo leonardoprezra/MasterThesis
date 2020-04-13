@@ -97,8 +97,8 @@ def convert2pos(inFN):
 
             box = f.configuration.box
             file1.write("box {:f} {:f} {:f}\n".format(box[0], box[1], box[2]))
-            file1.write('def A "sphere {:f} FF0000"'.format(diam_core)) # Red
-            file1.write('def B "sphere {:f} 0000FF"'.format(diam_halo)) # Blue
+            file1.write('def A "sphere {:f} FF0000"\n'.format(diam_core)) # Red
+            file1.write('def B "sphere {:f} 0000FF"\n'.format(diam_halo)) # Blue
 
             
 

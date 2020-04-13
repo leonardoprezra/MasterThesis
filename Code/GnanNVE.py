@@ -129,18 +129,19 @@ lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
 lj.set_params(mode='shift')
 
 lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
-lj.pair_coeff.set(['halo', 'core'], 'core', epsilon=0, sigma=0) # No interaction of halo-core or core-core
+# r_cut = False, excludes type pair interaction from neighbour list
+lj.pair_coeff.set(['halo', 'core'], 'core', r_cut=False, epsilon=0, sigma=0) # No interaction of halo-core or core-core
 
 # Apply FENE bonds
 FENE = hoomd.md.bond.fene()
 FENE.bond_coeff.set('fene', k=fene_k, r0=5.5, sigma=sigma_u,
                     epsilon=settings['epsilon'])
-FENE.bond_coeff.set('harmonic', k=0, r0=5.5, sigma=0, epsilon=0)
+#FENE.bond_coeff.set('harmonic', k=0, r0=5.5, sigma=0, epsilon=0)
 
 # Apply Harmonic bonds
 HARMONIC = hoomd.md.bond.harmonic()
 HARMONIC.bond_coeff.set('harmonic', k=harm_k , r0=(cluster.sphere_diam-halo_diam)/2)
-HARMONIC.bond_coeff.set('fene', k=0 , r0=0)
+#HARMONIC.bond_coeff.set('fene', k=0 , r0=0)
 
 '''
 # Apply Hertzian bonds
@@ -249,7 +250,7 @@ print(cluster.vol_cluster(dimensions)*total_N/system.box.get_volume())
 # # Equilibration at final volume fraction
 
 
-for i in [0]:
+for i in [1]:
     '''
     langevin_core.set_params(kT=i)
     langevin_halo.set_params(kT=i)
