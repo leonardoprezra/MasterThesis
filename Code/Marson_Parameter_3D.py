@@ -33,12 +33,12 @@ settings['diameter'] = 1  # Diameter of halo particles
 settings['sigma'] = 1.0  # WCA-potential parameters
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
-settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}_ratio-{ratio}'
 settings["initFile"] = 'None'
 settings['outputInterval'] = 2000  # Number of time steps between data storage
 settings['therm_steps'] = 40000  # Number of thermalization steps
 settings['equil_steps'] = 70000  # Number of equilibration steps
-
+settings['ratio'] = 1
 
 nameFormat = "data_{poly}/" + settings['nameString']
 
