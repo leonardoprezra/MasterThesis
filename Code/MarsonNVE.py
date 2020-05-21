@@ -66,7 +66,7 @@ equil_steps = settings['equil_steps']
 nve_steps = settings['nve_steps']
 N_cluster = settings['N_cluster']
 
-sigma_u = settings['sigma']
+sigma_u = settings['diameter']*settings['ratio']
 epsilon_u = settings['epsilon']
 
 # Print the correct number of clusters in the system
@@ -94,7 +94,7 @@ for k, v in settings.items():
 
 # Core particle properties
 cluster = PartCluster(
-    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass)
+    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
 
 # Area of clusters
 # 0.89 factor was chosen after study in 2D
@@ -112,6 +112,7 @@ if dimensions == 2:
     boxLen = math.sqrt(cluster.vol_cluster(dimensions) * total_N / density)
 elif dimensions == 3:
     boxLen = math.pow(cluster.vol_cluster(
+
         dimensions) * total_N / density, 1/3)
 
 # Neighbor list and Potential selection
@@ -122,9 +123,16 @@ lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
 
 # Shifts interaction potential, so that its value is zero at the r_cut
 lj.set_params(mode='shift')
-
 lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
-lj.pair_coeff.set(['halo', 'core'], 'core', epsilon=0, sigma=0)
+
+if settings['ratio'] == 1:
+    lj.pair_coeff.set(['halo', 'core'], 'core', r_cut=False, epsilon=0, sigma=0)
+elif settings['ratio'] < 1 and settings['ratio'] > 0:
+    sigma_core_core = cluster.core_diam
+    lj.pair_coeff.set('core', 'core', r_cut=2**(1/6)*sigma_core_core, epsilon=epsilon_u, sigma=sigma_core_core)
+    
+    sigma_halo_core = cluster.core_diam/2 + cluster.halo_diam/2
+    lj.pair_coeff.set('halo', 'core', r_cut=2**(1/6)*sigma_halo_core, epsilon=epsilon_u, sigma=sigma_halo_core)
 
 # # Thermalization
 # Integrator selection
@@ -132,7 +140,7 @@ hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
 rigid = hoomd.group.rigid_center()
 langevin = hoomd.md.integrate.langevin(
-    group=rigid, kT=settings['kT_therm'], seed=settings['seed'])
+    group=rigid, kT=settings['kT_therm'], seed=settings['seed'], tally=True)
 
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
 langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
@@ -184,6 +192,8 @@ while density_compression < density:
     density_compression = cluster.vol_cluster(
         dimensions)*total_N/system.box.get_volume()
 
+    #print(density_compression)
+
 if poly_key == '2Dspheres' and N_cluster == 3:
     hoomd.update.box_resize(Ly=boxLen*boxLen/system.box.Lx,
                             period=None, scale_particles=False)
@@ -198,10 +208,18 @@ npt.disable()
 langevin.enable()
 
 
-for i in [1]:
-    langevin.set_params(kT=i)
-    print('TEMPERATURE!!!!!!!!!!!!!!!!!!\n{}\n'.format(i))
-    hoomd.run(equil_steps)
+log = hoomd.analyze.log(filename='{:s}_ENERGY.log'.format(nameString),
+                        quantities=['potential_energy',
+                                    'kinetic_energy',
+                                    'translational_kinetic_energy',
+                                    'rotational_kinetic_energy',
+                                    'langevin_reservoir_energy_rigid'],
+                        period=outputInterval,
+                        overwrite=True)
+
+
+langevin.set_params(kT=settings['kT_equil'])
+hoomd.run(equil_steps)
 
 
 end_time = time.time()

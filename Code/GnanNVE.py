@@ -23,6 +23,8 @@ Integrators:
 local
 langevin
 '''
+import io
+from contextlib import redirect_stdout
 
 import hoomd
 import hoomd.md
@@ -69,6 +71,9 @@ N_cluster = settings['N_cluster']
 sigma_u = settings['sigma']
 epsilon_u = settings['epsilon']
 
+fene_k = settings['fene_k']
+harm_k = settings['harm_k']
+
 # Print the correct number of clusters in the system
 user_N = settings['N']
 if settings['dimensions'] == 3:
@@ -76,14 +81,14 @@ if settings['dimensions'] == 3:
 elif settings['dimensions'] == 2:
     settings['N'] = settings['N']**2
 
-nameString = "data_{}/".format(
+nameString = "dataFLEX_{}/".format(
     poly_key) + settings['nameString'].format(**settings)
 
 settings['N'] = user_N
 
 # Create directory to store simulation results
-if(not os.path.exists("data_{}".format(poly_key))):
-    os.mkdir("data_{}".format(poly_key))
+if(not os.path.exists("dataFLEX_{}".format(poly_key))):
+    os.mkdir("dataFLEX_{}".format(poly_key))
 
 # Print simulation information
 print('Working on: {:s}\nUsing: {}'.format(nameString, __file__))
@@ -124,32 +129,56 @@ lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
 lj.set_params(mode='shift')
 
 lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
-lj.pair_coeff.set(['halo', 'core'], 'core', epsilon=0, sigma=0)
+# r_cut = False, excludes type pair interaction from neighbour list
+lj.pair_coeff.set(['halo', 'core'], 'core', r_cut=False, epsilon=0, sigma=0) # No interaction of halo-core or core-core
 
 # Apply FENE bonds
 FENE = hoomd.md.bond.fene()
-FENE.bond_coeff.set('FENE', k=15, r0=1.5, sigma=halo_diam,
+FENE.bond_coeff.set('fene', k=fene_k, r0=5.5, sigma=sigma_u,
                     epsilon=settings['epsilon'])
+#FENE.bond_coeff.set('harmonic', k=0, r0=5.5, sigma=0, epsilon=0)
 
+# Apply Harmonic bonds
+HARMONIC = hoomd.md.bond.harmonic()
+HARMONIC.bond_coeff.set('harmonic', k=harm_k , r0=(cluster.sphere_diam-halo_diam)/2)
+#HARMONIC.bond_coeff.set('fene', k=0 , r0=0)
+
+'''
 # Apply Hertzian bonds
 HERTZIAN = hoomd.md.bond.table(width=1000)
-HERTZIAN.bond_coeff.set('HERTZIAN', func=hertzian, rmin=0, rmax=(cluster.sphere_diam -
-                                                                 halo_diam), coeff=dict(U=1000, sigma_H=(cluster.sphere_diam-halo_diam)))
-
+HERTZIAN.bond_coeff.set('hertzian', func=hertzian, rmin=0, rmax=cluster.sphere_diam*2, coeff=dict(U=1000, sigma_H=(cluster.sphere_diam-halo_diam)/2))
+HERTZIAN.bond_coeff.set('fene', func=hertzian, rmin=0, rmax=cluster.sphere_diam*2, coeff=dict(U=0, sigma_H=(cluster.sphere_diam-halo_diam)/2))
+'''
 # # Thermalization
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
-# creates grooup consisting of central particles in rigid body
-all_part = hoomd.group.all()
-langevin = hoomd.md.integrate.langevin(
-    group=all_part, kT=settings['kT_therm'], seed=settings['seed'])
 
+# Creates grooup consisting of central particles in rigid body
+all_group = hoomd.group.all()
+langevin = hoomd.md.integrate.langevin(
+        group=all_group, kT=settings['kT_therm'], seed=settings['seed'])
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
-langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
+langevin.set_gamma(a='core', gamma=0)
+'''
+halo_group = hoomd.group.type('halo')
+core_group = hoomd.group.type('core')
+
+langevin_halo = hoomd.md.integrate.langevin(
+        group=halo_group, kT=settings['kT_therm'], seed=settings['seed'])
+langevin_halo.set_gamma(a='halo', gamma=settings['fric_coeff'])
+langevin_halo.disable()
+
+langevin_core = hoomd.md.integrate.langevin(
+    group=core_group, kT=settings['kT_therm'], seed=settings['seed'], noiseless_r=True, noiseless_t=True)
+langevin_core.set_gamma(a='core', gamma=0)
+langevin_core.disable()
+'''
+
 # Store snapshot information
 # hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
 #                overwrite=True, period=None)
 # Computes thermodynamical properties of halo particles
+
 #halo_thermo = hoomd.compute.thermo(group=group_halo)
 
 log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
@@ -172,17 +201,31 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      dynamic=['momentum'],
                      overwrite=True)
 
+'''
+trap_stdout = io.StringIO()
+
+with redirect_stdout(trap_stdout):
+    for i in range(therm_steps):
+        langevin_halo.enable()
+        hoomd.run(1, quiet=True)
+        langevin_halo.disable()
+
+        langevin_core.enable()
+        hoomd.run(1, quiet=True)
+        langevin_core.disable()
+'''
+
 hoomd.run(therm_steps)
+langevin.disable()
 
 # # Compression
-langevin.disable()
 
 # Retrieve current pressure value
 pressure = log.query('pressure')
 print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
 
 npt = hoomd.md.integrate.npt(
-    group=all_part, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
+    group=all_group, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
 
 density_compression = cluster.vol_cluster(
     dimensions)*total_N/system.box.get_volume()
@@ -191,27 +234,43 @@ density_compression_control = density_compression
 
 while density_compression < density:
     hoomd.run(10, quiet=True)
+
     density_compression = cluster.vol_cluster(
         dimensions)*total_N/system.box.get_volume()
 
-if poly_key == '2Dspheres' and N_cluster == 3:
-    hoomd.update.box_resize(Ly=boxLen*boxLen/system.box.Lx,
-                            period=None, scale_particles=False)
-else:
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=False)
+npt.disable()
+langevin.enable()
+
+# Rescale simulation box
+hoomd.update.box_resize(L=boxLen, period=None, scale_particles=False)
 
 print('Final density')
 print(cluster.vol_cluster(dimensions)*total_N/system.box.get_volume())
 
 # # Equilibration at final volume fraction
-npt.disable()
-langevin.enable()
 
 
-for i in [1, 0.9, 0.8, 0.7, 0.6]:
+for i in [1]:
+    '''
+    langevin_core.set_params(kT=i)
+    langevin_halo.set_params(kT=i)
+    '''
     langevin.set_params(kT=i)
+
     print('TEMPERATURE!!!!!!!!!!!!!!!!!!\n{}\n'.format(i))
+
     hoomd.run(equil_steps)
+    '''
+    for i in range(equil_steps):
+        langevin_halo.enable()
+        hoomd.run(1, quiet=True)
+        langevin_halo.disable()
+
+        langevin_core.enable()
+        hoomd.run(1, quiet=True)
+        langevin_core.disable()
+    '''
+
 
 
 end_time = time.time()

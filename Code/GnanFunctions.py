@@ -9,16 +9,16 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 4  # N**2 or N**3 are the number of PSCs
+settings['N'] = 3  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = '3Dspheres'  # Type of polyhedron
+settings['poly'] = 'dode'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
-settings['density'] = 0.5  # Volume fraction
-settings['dimensions'] = 2  # 2d or 3d
-settings['N_cluster'] = 6  # number of spheres in cluster
+settings['density'] = 0.70  # Volume fraction
+settings['dimensions'] = 3  # 2d or 3d
+settings['N_cluster'] = 9  # number of spheres in cluster
 
 settings['integrator'] = 'nve'  # Integrator
-settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}_feneK-{fene_k}_harmK-{harm_k}'
 settings["initFile"] = "None"
 
 settings['max_move'] = 0.002  # Maximum move displacement (HPMC)
@@ -38,17 +38,21 @@ settings['tau'] = 1.0  # Coupling constant for the thermostat (NPT)
 settings['pressure'] = 5  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
-settings['hpmc_steps'] = 10  # Number of time steps of hpmc simulation
-settings['npt_steps'] = 100  # Number of steps required during compression
-settings['equil_steps'] = 100  # Number of equilibration steps
-settings['therm_steps'] = 100  # Number of thermalization steps
-settings['nve_steps'] = 100  # Number of thermalization steps
+settings['hpmc_steps'] = 1000  # Number of time steps of hpmc simulation
+settings['npt_steps'] = 1000  # Number of steps required during compression
+settings['equil_steps'] = 10000  # Number of equilibration steps
+settings['therm_steps'] = 10000  # Number of thermalization steps
+settings['nve_steps'] = 1000  # Number of thermalization steps
 
-settings['outputInterval'] = 1  # Number of time steps between data storage
+settings['outputInterval'] = 500  # Number of time steps between data storage
 a = math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
 # Time step of MD simulations
-settings['time_step'] = 0.007 * \
+settings['time_step'] = 0.001 * \
     math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
+
+settings['fene_k'] = 15
+settings['harm_k'] = 1000
+
 
 # Core particle properties
 
@@ -222,9 +226,10 @@ class PartCluster:
 
     def vol_cluster(self, dimensions):
         if dimensions == 2:
-            return math.pi / 4 * self.sphere_diam**2 * 0.89
+
+            return math.pi/4 * (self.core_diam**2 + self.N_cluster*self.halo_diam**2)
         elif dimensions == 3:
-            return math.pi / 6 * self.sphere_diam**3 * 0.89
+            return math.pi/6 * (self.core_diam**3 + self.N_cluster*self.halo_diam**3)
 
 
 # Create snapshot for system initialization
@@ -253,24 +258,21 @@ def create_snapshot_soft(cluster, N, density, dimensions=3):
     rigid
         Rigid bodies.
     '''
-    boxLen = math.pow(cluster.vol_cluster(dimensions) * N**3 / density, 1/3)
-
-    if dimensions == 2:
-        boxLen = math.sqrt(cluster.vol_cluster(dimensions) * N**2 / density)
 
     # Creates snapshot with first cluster
     snapshot = hoomd.data.make_snapshot(N=1+cluster.N_cluster,
                                         particle_types=['core', 'halo'],
-                                        bond_types=['FENE', 'HERTZIAN'],
+                                        #bond_types=['fene', 'hertzian'],
+                                        bond_types=['fene', 'harmonic'],
                                         box=hoomd.data.boxdim(
                                             L=cluster.sphere_diam * 1.1, dimensions=dimensions)
                                         )
 
     # Properties of core particles
     snapshot.particles.typeid[0] = 0
-    snapshot.particles.mass[0] = 0
+    snapshot.particles.mass[0] = cluster.halo_mass
     snapshot.particles.position[0] = (0, 0, 0)
-    snapshot.particles.diameter[0] = cluster.sphere_diam*0.1
+    snapshot.particles.diameter[0] = cluster.core_diam*0.1
     snapshot.particles.body[0] = -2
 
     # Properties of halo particles
@@ -283,50 +285,70 @@ def create_snapshot_soft(cluster, N, density, dimensions=3):
         snapshot.particles.diameter[i] = cluster.halo_diam
         snapshot.particles.body[i] = -2
 
-    print(snapshot.particles.body)
-    # Set FENE bonds among halo particles
-    snapshot.bonds.resize(cluster.N_cluster)
-    snapshot.bonds.group[:] = [
-        [i, i+1] for i in range(1, snapshot.particles.N-1)] + [[1, snapshot.particles.N-1]]
+    if dimensions == 2:
+        # Set FENE bonds among halo particles
+        snapshot.bonds.resize(cluster.N_cluster*2)
+        snapshot.bonds.group[:cluster.N_cluster] = [
+            [i, i+1] for i in range(1, snapshot.particles.N-1)] + [[1, snapshot.particles.N-1]]
+        
+        # Set Harmonic bonds among halo and core particles
+        # Set Hertzian bonds among halo and core particles
+        snapshot.bonds.group[cluster.N_cluster:] = [[0, i]
+                                                    for i in range(1, snapshot.particles.N)]
+        snapshot.bonds.typeid[cluster.N_cluster:] = 1
+    
+    elif dimensions ==3:
+        # Set Harmonic bonds among halo and core particles
+        # Set Hertzian bonds among halo and core particles
+        snapshot.bonds.resize(cluster.N_cluster)
+        snapshot.bonds.group[:cluster.N_cluster] = [[0, i]
+                                                    for i in range(1, snapshot.particles.N)]
+        snapshot.bonds.typeid[:cluster.N_cluster] = 1
 
-    # Set Hertzian bonds among halo and core particles
-    snapshot.bonds.resize(cluster.N_cluster*2)
-    snapshot.bonds.group[cluster.N_cluster:] = [[0, i]
-                                                for i in range(1, snapshot.particles.N)]
-    snapshot.bonds.typeid[cluster.N_cluster:] = 1
-    print(snapshot.bonds.types)
-    print(snapshot.bonds.group)
-    print(snapshot.bonds.typeid)
-    print(snapshot.particles.typeid)
-    print(snapshot.particles.body)
+        bonds_size = cluster.N_cluster
+        # Set FENE bonds among halo particles
+        for i1,p1 in enumerate(snapshot.particles.position):
+            prev_bonds_size = bonds_size
+            pairs = []
+            for i2,p2 in enumerate(snapshot.particles.position):
+
+                if i1 != i2 and i1 != 0 and i2 !=0:
+                    dist = math.sqrt(sum([(p1[a]-p2[a])**2 for a in range(3)]))
+
+                    if dist <= cluster.halo_diam *2:
+                        pairs.append(i2)
+            
+            bonds_size += len(pairs)
+
+            if prev_bonds_size != bonds_size:
+                snapshot.bonds.resize(bonds_size)
+                snapshot.bonds.group[prev_bonds_size:] = [[i1, i]
+                                                         for i in pairs]
+                snapshot.bonds.typeid[prev_bonds_size:] = 0
+
 
     # Replicates cluster in snapshot
-
+    
     if dimensions == 2:
         snapshot.replicate(N, N, 1)
     elif dimensions == 3:
         snapshot.replicate(N, N, N)
-
-    print(snapshot.particles.N)
-    print(snapshot.particles.body)
-
+    
     # Initialize sys configuration
     system = hoomd.init.read_snapshot(snapshot)
 
-    total_N = len(system.particles)  # total number of clusters
-
+    group_core = hoomd.group.type(type='core')
+    total_N = len(group_core)  # total number of clusters
     body_flags = set([p.body for p in system.particles])
-
+    
+    # Set body flags to negative values (floppy bodies)
     i = -3
     for b in body_flags:
         for p in system.particles:
             if p.body == b:
                 p.body = i
-        i -= 1
-
-    for i in range(len(system.bonds)):
-        print(system.bonds[i])
-
+        i += -1
+    
     print('[II] Snapshot . . . . done.')
 
     return (system, total_N)

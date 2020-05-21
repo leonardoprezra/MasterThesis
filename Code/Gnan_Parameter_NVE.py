@@ -24,33 +24,44 @@ import subprocess
 import random
 import math
 import sys
+import argparse
+
+# Command line argument parsing
+parser = argparse.ArgumentParser(
+    description='Run MD simulations of soft particles in 2D and 3D')
+parser.add_argument('density', type=int,
+                    help='volume fraction covered by clusters')
+parser.add_argument('start_N_cluster', type=int, help='smallest number of halo particles in a cluster')
+parser.add_argument('end_N_cluster', type=int, help='largest number of halo particles in a cluster')
+
+args = parser.parse_args()
 
 
 # General simulation parameters
 settings = {}
-settings['N'] = 100  # N**2 or N**3 are the number of PSCs
+settings['N'] = 5  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['sigma'] = 1.0  # WCA-potential parameters
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step}'
 settings["initFile"] = 'None'
-settings['outputInterval'] = 2000  # Number of time steps between data storage
-settings['therm_steps'] = 40000  # Number of thermalization steps
-settings['equil_steps'] = 70000  # Number of equilibration steps
+settings['outputInterval'] = 20  # Number of time steps between data storage
+settings['therm_steps'] = 400  # Number of thermalization steps
+settings['equil_steps'] = 700  # Number of equilibration steps
 
 
-nameFormat = "data_{poly}/" + settings['nameString']
+nameFormat = "dataFLEX_{poly}/" + settings['nameString']
 
 
 # Specific simulation parameters
 parameterspace = []
 
-dens = int(sys.argv[1])/100
+dens = int(args.density)/100
 tstep_multiplier = 0.003
 
-start_N_cluster = int(sys.argv[2])
-end_N_cluster = int(sys.argv[3])
+start_N_cluster = int(args.start_N_cluster)
+end_N_cluster = int(args.end_N_cluster)
 
 '''
 for dens in dens_values:
@@ -149,8 +160,8 @@ for initDict in parameterspace:
 
     # Create directories
     try:
-        if(not os.path.exists("data_{poly}/".format(**initDict))):
-            os.mkdir("data_{poly}/".format(**initDict))
+        if(not os.path.exists("dataFLeX_{poly}/".format(**initDict))):
+            os.mkdir("dataFLEX_{poly}/".format(**initDict))
     except OSError as e:
         if e.errno != 17:
             raise
@@ -172,7 +183,7 @@ for initDict in parameterspace:
     # Run simulations
     out = open(nameString+".outputs", "w")
     proc = subprocess.Popen(["python",  "-u",
-                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVE.py",
+                             "GnanNVE.py",
                              *initString],
                             stdout=out,
                             stderr=out)

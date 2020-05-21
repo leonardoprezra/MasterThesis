@@ -77,6 +77,8 @@ for t, st in titles_subtitle:
     ax2_1.set_ylabel('Pressure / -')
     ax2_1.set_xlabel('Time Step / -')
     ax2_1.legend()
+
+    
     fig2.tight_layout()
     fig2.savefig('thermo_plots/Pressure_{}_{}.png'.format(t, st))
     plt.clf()
@@ -150,4 +152,25 @@ for t, st1, st2 in titles_subtitle:
     ax3_1.legend()
     fig3.tight_layout()
     fig3.savefig('thermo_plots/Energy{}_{}_{}.png'.format(t, st1, st2))
+    plt.clf()
+
+    # Plot WCA energy
+    fig1 = plt.figure(4)
+    ax1_1 = fig1.add_subplot(1, 1, 1)
+    ax1_1.set_title('{}\n{}\n{}'.format(t, st1, st2))
+    for d in data_names:
+        # Check if file matches combination of type of cluster, number of clusters and particles per cluster
+        if d[0] == t and d[1].split('_')[-5] == st1 and d[1].split('_')[-2] == st2:
+            # Label includes: (-2) Nclus, (-3) dim, (-4) VF
+            label = d[1].split('_')[-4]+'_' + \
+                d[1].split('_')[-3]+'_'+d[1].split('_')[-2]
+            data = np.genfromtxt(fname=d[2], skip_header=True)
+            ax1_1.plot(data[:, 0], data[:, 10], label=label)
+
+    ax1_1.set_ylabel('Pair WCA energy / -')
+    ax1_1.set_xlabel('Time Step / -')
+    ax1_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
+    ax1_1.legend()
+    fig1.tight_layout()
+    fig1.savefig('thermo_plots/PairWCAEnergy_{}_{}_{}.png'.format(t, st1, st2))
     plt.clf()
