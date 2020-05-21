@@ -18,16 +18,14 @@ settings['dimensions'] = 2  # 2d or 3d
 settings['N_cluster'] = 3  # number of spheres in cluster
 settings['ratio'] = 0.5 # halo_diam/halo_edge
 
-settings['integrator'] = 'nve'  # Integrator
-settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
+settings['integrator'] = 'langevin'  # Integrator
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster:2d}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
 settings["initFile"] = "None"
 
-settings['max_move'] = 0.002  # Maximum move displacement (HPMC)
-settings['max_rot'] = 0.4  # Maximum move rotation (HPMC)
 settings['seed'] = 42  # Random number seed (HPMC, LANGEVIN)
 
 settings['sigma'] = settings['diameter']*settings['ratio']  # WCA-potential parameters (LANGEVIN)
-settings['epsilon'] = 1.0  # WCA-potential parameters (LANGEVIN)
+settings['epsilon'] = 4.0  # WCA-potential parameters (LANGEVIN)
 settings['kT_therm'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
 settings['kT_npt'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
 settings['kT_equil'] = 1.0  # Temperature of the simulation (LANGEVIN, NPT)
@@ -38,14 +36,11 @@ settings['tau'] = 1.0  # Coupling constant for the thermostat (NPT)
 settings['pressure'] = 50  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
-settings['hpmc_steps'] = 10  # Number of time steps of hpmc simulation
-settings['npt_steps'] = 200  # Number of steps required during compression
 settings['equil_steps'] = 2000  # Number of equilibration steps
 settings['therm_steps'] = 8000  # Number of thermalization steps
-settings['nve_steps'] = 200  # Number of thermalization steps
 
-settings['outputInterval'] = 1  # Number of time steps between data storage
-a = math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
+settings['outputInterval_gsd'] = 20 # Number of time steps between data storage in gsd file
+settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
 settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
@@ -276,7 +271,7 @@ def mom_inertia(particles, mass):
     rot_matrix = np.transpose(princ_axis) 
     #rotation_matrix = princ_axis # Use to rotate on the opposite direction
     
-    quaternion = R.from_matrix(rot_matrix).as_quat()
+    #quaternion = R.from_matrix(rot_matrix).as_quat()
 
     return mom_inertia_princ, rot_matrix
 
