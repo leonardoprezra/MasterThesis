@@ -28,18 +28,22 @@ import sys
 
 # General simulation parameters
 settings = {}
-settings['N'] = 64  # N**2 or N**3 are the number of PSCs
+settings['N'] = 65  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
-settings['sigma'] = 1.0  # WCA-potential parameters
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
-settings['nameString'] = settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster:2d}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
 settings["initFile"] = 'None'
-settings['outputInterval'] = 2000 # Number of time steps between data storage
-settings['therm_steps'] = 30000  # Number of thermalization steps
-settings['equil_steps'] = 60000  # Number of equilibration steps
+# Number of time steps between data storage in gsd file
+settings['outputInterval_gsd'] = 10000
+# Number of time steps between data storage in log file
+settings['outputInterval_log'] = 1000
+settings['therm_steps'] = 100000  # Number of thermalization steps
+settings['equil_steps'] = 1000000  # Number of equilibration steps
 settings['ratio'] = 1
-settings['tstep_multiplier'] = 0.005
+settings['tstep_multiplier'] = 0.001
+settings['sigma'] = settings['diameter'] * \
+    settings['ratio']  # WCA-potential parameters (LANGEVIN)
 
 nameFormat = "data_{poly}/" + settings['nameString']
 
@@ -122,7 +126,7 @@ for dens in dens_values:
 '''
 
 for i in range(start_N_cluster, end_N_cluster, 1):
-    for a in range(4,11,1):
+    for a in range(4, 11, 1):
         parameterspace += [
             {**settings,
                 'integrator': 'nve',
@@ -133,7 +137,7 @@ for i in range(start_N_cluster, end_N_cluster, 1):
                 'ratio': a/10,
                 'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
                 # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-            }]
+             }]
 
 
 # Run Simulations
@@ -175,7 +179,7 @@ for initDict in parameterspace:
     # Run simulations
     out = open(nameString+".outputs", "w")
     proc = subprocess.Popen(["python",  "-u",
-                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVE.py", #  "MarsonNVE.py", #
+                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVE.py",  # "MarsonNVE.py",  #
                              *initString],
                             stdout=out,
                             stderr=out)
