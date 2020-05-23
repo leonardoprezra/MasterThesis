@@ -31,8 +31,10 @@ parser = argparse.ArgumentParser(
     description='Run MD simulations of soft particles in 2D and 3D')
 parser.add_argument('density', type=int,
                     help='volume fraction covered by clusters')
-parser.add_argument('start_N_cluster', type=int, help='smallest number of halo particles in a cluster')
-parser.add_argument('end_N_cluster', type=int, help='largest number of halo particles in a cluster')
+parser.add_argument('start_N_cluster', type=int,
+                    help='smallest number of halo particles in a cluster')
+parser.add_argument('end_N_cluster', type=int,
+                    help='largest number of halo particles in a cluster')
 
 args = parser.parse_args()
 

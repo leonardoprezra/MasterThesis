@@ -290,14 +290,14 @@ def create_snapshot_soft(cluster, N, density, dimensions=3):
         snapshot.bonds.resize(cluster.N_cluster*2)
         snapshot.bonds.group[:cluster.N_cluster] = [
             [i, i+1] for i in range(1, snapshot.particles.N-1)] + [[1, snapshot.particles.N-1]]
-        
+
         # Set Harmonic bonds among halo and core particles
         # Set Hertzian bonds among halo and core particles
         snapshot.bonds.group[cluster.N_cluster:] = [[0, i]
                                                     for i in range(1, snapshot.particles.N)]
         snapshot.bonds.typeid[cluster.N_cluster:] = 1
-    
-    elif dimensions ==3:
+
+    elif dimensions == 3:
         # Set Harmonic bonds among halo and core particles
         # Set Hertzian bonds among halo and core particles
         snapshot.bonds.resize(cluster.N_cluster)
@@ -307,40 +307,39 @@ def create_snapshot_soft(cluster, N, density, dimensions=3):
 
         bonds_size = cluster.N_cluster
         # Set FENE bonds among halo particles
-        for i1,p1 in enumerate(snapshot.particles.position):
+        for i1, p1 in enumerate(snapshot.particles.position):
             prev_bonds_size = bonds_size
             pairs = []
-            for i2,p2 in enumerate(snapshot.particles.position):
+            for i2, p2 in enumerate(snapshot.particles.position):
 
-                if i1 != i2 and i1 != 0 and i2 !=0:
+                if i1 != i2 and i1 != 0 and i2 != 0:
                     dist = math.sqrt(sum([(p1[a]-p2[a])**2 for a in range(3)]))
 
-                    if dist <= cluster.halo_diam *2:
+                    if dist <= cluster.halo_diam * 2:
                         pairs.append(i2)
-            
+
             bonds_size += len(pairs)
 
             if prev_bonds_size != bonds_size:
                 snapshot.bonds.resize(bonds_size)
                 snapshot.bonds.group[prev_bonds_size:] = [[i1, i]
-                                                         for i in pairs]
+                                                          for i in pairs]
                 snapshot.bonds.typeid[prev_bonds_size:] = 0
 
-
     # Replicates cluster in snapshot
-    
+
     if dimensions == 2:
         snapshot.replicate(N, N, 1)
     elif dimensions == 3:
         snapshot.replicate(N, N, N)
-    
+
     # Initialize sys configuration
     system = hoomd.init.read_snapshot(snapshot)
 
     group_core = hoomd.group.type(type='core')
     total_N = len(group_core)  # total number of clusters
     body_flags = set([p.body for p in system.particles])
-    
+
     # Set body flags to negative values (floppy bodies)
     i = -3
     for b in body_flags:
@@ -348,7 +347,7 @@ def create_snapshot_soft(cluster, N, density, dimensions=3):
             if p.body == b:
                 p.body = i
         i += -1
-    
+
     print('[II] Snapshot . . . . done.')
 
     return (system, total_N)
