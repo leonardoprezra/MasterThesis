@@ -193,7 +193,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
         ax4_1.set_ylabel('Pair WCA energy / -')
         ax4_1.set_xlabel('Time Step / -')
-        ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
+        #ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
         ax4_1.legend()
         # fig4.tight_layout()
         fig4.savefig(
