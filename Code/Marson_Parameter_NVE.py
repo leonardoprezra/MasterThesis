@@ -44,6 +44,8 @@ settings['tstep_multiplier'] = 0.005
 settings['sigma'] = settings['diameter'] * \
     settings['ratio']  # WCA-potential parameters (LANGEVIN)
 
+settings['density'] = 0.80
+
 nameFormat = "data_{poly}/" + settings['nameString']
 
 

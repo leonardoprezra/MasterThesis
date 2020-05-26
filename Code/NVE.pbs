@@ -19,9 +19,9 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+1  &
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+2  &
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+3  &
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+4  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $(($PBS_ARRAYID+1))  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $(($PBS_ARRAYID+2))  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $(($PBS_ARRAYID+3))  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $(($PBS_ARRAYID+4))  &
 
 wait
