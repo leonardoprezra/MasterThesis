@@ -42,56 +42,6 @@ print('Number of .log files = ', len(data_names))
 
 print('Number of ENERGY.log files = ', len(data_names_ENERGY))
 
-'''
-# Store combinations of type of cluster (title) and number of clusters (subtitle)
-titles_subtitle = set([(i[0], i[1].split('_')[-5]) for i in data_names])
-
-# Read and plot data
-print(titles_subtitle)
-for t, st in titles_subtitle:
-    # Plot Temperature
-    fig1 = plt.figure(1)
-    ax1_1 = fig1.add_subplot(1, 1, 1)
-    ax1_1.set_title('{}\n{}'.format(t, st))
-    for d in data_names:
-        # Check if file matches combination of type of cluster and number of clusters
-        if d[0] == t and d[1].split('_')[-5] == st:
-            # Label includes: (-2) Nclus, (-3) dim, (-4) VF
-            label = d[1].split('_')[-4]+'_' + \
-                d[1].split('_')[-3]+'_'+d[1].split('_')[-2]
-            data = np.genfromtxt(fname=d[2], skip_header=True)
-            ax1_1.plot(data[:, 0], data[:, 8], label=label)
-
-    ax1_1.set_ylabel('Temperature / -')
-    ax1_1.set_xlabel('Time Step / -')
-    ax1_1.legend()
-    fig1.tight_layout()
-    fig1.savefig('thermo_plots/Temperature_{}_{}.png'.format(t, st))
-    plt.clf()
-
-    # Plot Pressure
-    fig2 = plt.figure(2)
-    ax2_1 = fig2.add_subplot(1, 1, 1)
-    ax2_1.set_title('{}\n{}'.format(t, st))
-    for d in data_names:
-        # Check if file matches combination of type of cluster and number of clusters
-        if d[0] == t and d[1].split('_')[-5] == st:
-            # Label includes: (-2) Nclus, (-3) dim, (-4) VF
-            label = d[1].split('_')[-4]+'_' + \
-                d[1].split('_')[-3]+'_'+d[1].split('_')[-2]
-            data = np.genfromtxt(fname=d[2], skip_header=True)
-            ax2_1.plot(data[:, 0], data[:, 9], label=label)
-
-    ax2_1.set_ylabel('Pressure / -')
-    ax2_1.set_xlabel('Time Step / -')
-    ax2_1.legend()
-
-    
-    fig2.tight_layout()
-    fig2.savefig('thermo_plots/Pressure_{}_{}.png'.format(t, st))
-    plt.clf()
-'''
-
 # Store combinations of type of cluster (title), number of clusters and particles per cluster (subtitle)
 # i[0] shape, i[1](2) N, i[1](5) Nclus
 titles_subtitle = set(
@@ -193,7 +143,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
         ax4_1.set_ylabel('Pair WCA energy / -')
         ax4_1.set_xlabel('Time Step / -')
-        ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
+        # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
         ax4_1.legend()
         # fig4.tight_layout()
         fig4.savefig(

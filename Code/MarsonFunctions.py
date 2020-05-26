@@ -9,14 +9,14 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 3  # N**2 or N**3 are the number of PSCs
+settings['N'] = 64  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = '2Dspheres'  # Type of polyhedron
+settings['poly'] = 'one'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
-settings['N_cluster'] = 3  # number of spheres in cluster
-settings['ratio'] = 0.5 # halo_diam/halo_edge
+settings['N_cluster'] = 0  # number of spheres in cluster
+settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 settings['integrator'] = 'langevin'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster:2d}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
@@ -25,9 +25,9 @@ settings["initFile"] = "None"
 settings['seed'] = 42  # Random number seed (HPMC, LANGEVIN)
 
 settings['sigma'] = settings['diameter']*settings['ratio']  # WCA-potential parameters (LANGEVIN)
-settings['epsilon'] = 4.0  # WCA-potential parameters (LANGEVIN)
-settings['kT_therm'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
-settings['kT_npt'] = 5.0  # Temperature of the simulation (LANGEVIN, NPT)
+settings['epsilon'] = 1.0  # WCA-potential parameters (LANGEVIN)
+settings['kT_therm'] = 1.0  # Temperature of the simulation (LANGEVIN, NPT)
+settings['kT_npt'] = 1.0  # Temperature of the simulation (LANGEVIN, NPT)
 settings['kT_equil'] = 1.0  # Temperature of the simulation (LANGEVIN, NPT)
 visc = 1/math.pi/6/settings['sigma'] # Solvent viscosity (LANGEVIN)
 settings['fric_coeff'] = 6*math.pi*visc*settings['sigma'] # Particle friction coefficient (LANGEVIN)
@@ -36,13 +36,14 @@ settings['tau'] = 1.0  # Coupling constant for the thermostat (NPT)
 settings['pressure'] = 50  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
-settings['equil_steps'] = 2000  # Number of equilibration steps
+settings['equil_steps'] = 2500  # Number of equilibration steps
 settings['therm_steps'] = 8000  # Number of thermalization steps
 
-settings['outputInterval_gsd'] = 20 # Number of time steps between data storage in gsd file
-settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
+settings['outputInterval_gsd'] = 2500 # Number of time steps between data storage in gsd file
+settings['outputInterval_log'] = settings['outputInterval_gsd']/4 # Number of time steps between data storage in log file
 settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
+
 
 # Core particle properties
 
@@ -146,6 +147,14 @@ def core_properties(d=0, poly=None, mass=0, N_spheres=0):
         '3Dspheres_N': N_spheres,
         '3Dspheres_diam':  core_diam,
         '3Dspheres_sphere_diam': sphere_diam,
+
+        'one_type': ['core'],
+        'one_coord': [(0,0,0)],
+        'one_mass': mass,
+        'one_N': 1,
+        'one_diam':  d,
+        'one_sphere_diam': d,
+
     }
     try:
         return core_values[poly]
@@ -345,6 +354,7 @@ def create_snapshot(cluster, N, dimensions=3):
 
     system.particles.types.add('halo')
 
+    
     # Create rigid clusters
     rigid = hoomd.md.constrain.rigid()
 
@@ -361,11 +371,10 @@ def create_snapshot(cluster, N, dimensions=3):
 
     for p in group_halo:
         p.diameter = cluster.halo_diam
-
+    
     print('[II] Snapshot . . . . done.')
 
     return (system, rigid, group_core, group_halo, total_N)
-
 
 # Distribute points uniformly on a sphere
 
