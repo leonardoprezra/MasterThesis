@@ -1,8 +1,10 @@
 #!/bin/bash -l
 # Batch processing script
 
-#PBS -l nodes=1:ppn=4,walltime=08:00:00
+
+#PBS -l nodes=1:ppn=4,walltime=08:30:00
 #PBS -N rigidHoomd
+#PBS -t 2,6,10
 
 
 # Load required modules (compiler, ...)
@@ -17,6 +19,9 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python $HOME/MasterThesis/Code/MarsonNVESteps.py &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+1  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+2  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+3  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+4  &
 
 wait

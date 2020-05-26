@@ -11,12 +11,13 @@ settings = {}
 
 settings['N'] = 16  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = 'one'  # Type of polyhedron
+settings['poly'] = '2Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
-settings['dimensions'] = 3  # 2d or 3d
-settings['N_cluster'] = 0  # number of spheres in cluster
-settings['ratio'] = 1.0 # halo_diam/halo_edge
+settings['dimensions'] = 2  # 2d or 3d
+settings['N_cluster'] = 3  # number of spheres in cluster
+settings['ratio'] = 0.8 # halo_diam/halo_edge
+
 
 settings['integrator'] = 'langevin'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster:2d}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
