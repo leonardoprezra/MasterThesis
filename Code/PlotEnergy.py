@@ -10,6 +10,7 @@ no sub directories should exist in data_*.
 from matplotlib import pyplot as plt
 import numpy as np
 import os
+import math
 
 # Get path to current working directory
 path = os.getcwd()
@@ -148,4 +149,34 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
         # fig4.tight_layout()
         fig4.savefig(
             'thermo_plots/PairWCAEnergy_{}_{}_{}.png'.format(t, st1, st2))
+        plt.clf()
+
+        # Plot Pressure-VF
+        fig5 = plt.figure(5)
+        ax5_1 = fig5.add_subplot(1, 1, 1)
+        ax5_1.set_title('{}\n{}'.format(t, st1))
+        for d in data_names:
+            # Check if file matches combination of type of cluster, number of clusters and particles per cluster
+            if d[0] == t and d[1].split('_')[2] == st1 and d[1].split('_')[5] == st2:
+                # Label includes: (5) Nclus, (4) dim, (3) VF, (7) ratio
+                label = d[1].split('_')[4]
+                data = np.genfromtxt(fname=d[2], skip_header=True)
+
+                # Check dimensions
+                dimensions = int(d[1].split('_')[4].split('-')[1])
+                total_N = int(d[1].split('_')[2].split('-')[1])
+                if dimensions == 3:
+                    vol = math.pi/6*1**3 * total_N
+                if dimensions == 2:
+                    vol = math.pi/4*1**2 * total_N
+
+                ax5_1.plot(vol / data[:, 1], data[:, 9], label=label)
+
+        ax5_1.set_ylabel('Pressure / -')
+        ax5_1.set_xlabel('VF / -')
+        # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
+        ax5_1.legend()
+        # fig4.tight_layout()
+        fig5.savefig(
+            'thermo_plots/PressureVF_{}_{}_{}.png'.format(t, st1, st2))
         plt.clf()
