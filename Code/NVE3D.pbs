@@ -1,10 +1,9 @@
 #!/bin/bash -l
 # Batch processing script
 
-#PBS -l nodes=1:ppn=4,walltime=09:00:00
-#PBS -N rigidHoomd3D
-#PBS -t 55,57,59,61,63,69,71,73,75
-
+#PBS -l nodes=1:ppn=4,walltime=00:30:00
+#PBS -N rigidHoomd
+#PBS -t 60,63,65,67,72,75,77,79
 
 
 # Load required modules (compiler, ...)
@@ -16,9 +15,9 @@ source activate localconda
 
 # change to temporary job data directory
 # located in node, between 400-900GB
-cd  $HPCVAULT
+cd  $WORK
 
 # run simulation
-python $HOME/MasterThesis/Code/Marson_Parameter_3D.py $PBS_ARRAYID &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVECOPY.py $PBS_ARRAYID 3 4 &
 
 wait

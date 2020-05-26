@@ -193,6 +193,13 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      dynamic=['momentum'],
                      overwrite=True)
 
+density = 0.60
+if dimensions == 2:
+    boxLen = math.sqrt(vol / density)
+elif dimensions == 3:
+    boxLen = math.pow(vol / density, 1/3)
+
+hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
 for dens in range(6000, 8001, 1):
     dens = dens / 10000
@@ -201,7 +208,7 @@ for dens in range(6000, 8001, 1):
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
 
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=False)
 
     hoomd.run(equil_steps)
 
@@ -215,7 +222,7 @@ for dens in range(8000, 5999, -1):
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
 
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=False)
 
     hoomd.run(equil_steps)
 
