@@ -1,16 +1,12 @@
 #!/bin/bash -l
 # Batch processing script
 
-# DO NOT RUN MORE than 4 different Nclus per density!!!!!!
-# PROBLEMS WITH HOOMD_WALLTIME_STOP will arise!!!!!
 
-#PBS -l nodes=1:ppn=4,walltime=02:00:00
+#PBS -l nodes=1:ppn=4,walltime=08:30:00
 #PBS -N rigidHoomd
-#PBS -t 60,63,65,67,70,72,75
+#PBS -t 2,6,10
 
 # Export Hoomd wall time variable
-# It must be the same as the wall time of the submitted script
-export HOOMD_WALLTIME_STOP=$((`date +%s` + 2 * 3600 - 10 * 60)) # 10*60 represent 10 min to cleanly exit
 
 # Load required modules (compiler, ...)
 module load python/3.7-anaconda
@@ -24,6 +20,9 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID 3 13 &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+1  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+2  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+3  &
+python $HOME/MasterThesis/Code/Marson_Parameter_NVE.py $PBS_ARRAYID+4  &
 
 wait

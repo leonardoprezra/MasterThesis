@@ -37,11 +37,10 @@ settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
 settings['outputInterval_gsd'] = 10000
 # Number of time steps between data storage in log file
-settings['outputInterval_log'] = 1000
-settings['therm_steps'] = 100000  # Number of thermalization steps
-settings['equil_steps'] = 1000000  # Number of equilibration steps
+settings['outputInterval_log'] = 2500
+settings['equil_steps'] = 10000  # Number of equilibration steps
 settings['ratio'] = 1
-settings['tstep_multiplier'] = 0.001
+settings['tstep_multiplier'] = 0.005
 settings['sigma'] = settings['diameter'] * \
     settings['ratio']  # WCA-potential parameters (LANGEVIN)
 
@@ -51,93 +50,21 @@ nameFormat = "data_{poly}/" + settings['nameString']
 # Specific simulation parameters
 parameterspace = []
 
-dens = int(sys.argv[1])/100
 tstep_multiplier = settings['tstep_multiplier']
 
-start_N_cluster = int(sys.argv[2])
-end_N_cluster = int(sys.argv[3])
+start_N_cluster = int(sys.argv[1])
 
-'''
-for dens in dens_values:
-    for tstep_multiplier in tstep_values:
-        parameters = [
-            {**settings,
-             'integrator': 'nve',
-             'density': dens,
-             'poly': 'octa',
-             'dimensions': 3,
-             'N_cluster': 6,
-             'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-             # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-             },
-            {**settings,
-             'integrator': 'nve',
-             'density': dens,
-             'poly': 'tetra',
-             'dimensions': 3,
-             'N_cluster': 4,
-             'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-             # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-             },
-            {**settings,
-             'integrator': 'nve',
-             'density': dens,
-             'poly': 'dode',
-             'dimensions': 3,
-             'N_cluster': 20,
-             'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-             # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-             },
-            {**settings,
-             'integrator': 'nve',
-             'density': dens,
-             'poly': 'ico',
-             'dimensions': 3,
-             'N_cluster': 12,
-             'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-             # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-             },
-            {**settings,
-             'integrator': 'nve',
-             'density': dens,
-             'poly': 'cube',
-             'dimensions': 3,
-             'N_cluster': 8,
-             'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-             # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-             }
-        ]
-
-        parameterspace += parameters
-
-for dens in dens_values:
-    for tstep_multiplier in tstep_values:
-        for i in range(3, 50, 1):
-            parameterspace += [
-                {**settings,
-                 'integrator': 'nve',
-                 'density': dens,
-                 'poly': '3Dspheres',
-                 'dimensions': 3,
-                 'N_cluster': i,
-                 'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-                 # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-                 }]
-'''
-
-for i in range(start_N_cluster, end_N_cluster, 1):
-    for a in range(4, 11, 1):
-        parameterspace += [
-            {**settings,
-                'integrator': 'nve',
-                'density': dens,
-                'poly': '2Dspheres',
-                'dimensions': 2,
-                'N_cluster': i,
-                'ratio': a/10,
-                'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
-                # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-             }]
+for a in range(3, 11, 1):
+    parameterspace += [
+        {**settings,
+            'integrator': 'nve',
+            'poly': '2Dspheres',
+            'dimensions': 2,
+            'N_cluster': start_N_cluster ,
+            'ratio': a/10,
+            'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
+            # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
+            }]
 
 
 # Run Simulations
@@ -179,7 +106,7 @@ for initDict in parameterspace:
     # Run simulations
     out = open(nameString+".outputs", "w")
     proc = subprocess.Popen(["python",  "-u",
-                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVE.py",  # "MarsonNVE.py",  #
+                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresis.py",  # "MarsonNVE.py",  #
                              *initString],
                             stdout=out,
                             stderr=out)
