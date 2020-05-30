@@ -11,7 +11,7 @@ settings = {}
 
 settings['N'] = 16  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = '2Dspheres'  # Type of polyhedron
+settings['poly'] = 'one'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
@@ -37,11 +37,11 @@ settings['tau'] = 1.0  # Coupling constant for the thermostat (NPT)
 settings['pressure'] = 50  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
-settings['equil_steps'] = 10000  # Number of equilibration steps
+settings['equil_steps'] = 2500  # Number of equilibration steps
 settings['therm_steps'] = 8000  # Number of thermalization steps
 
-settings['outputInterval_gsd'] = 10000 # Number of time steps between data storage in gsd file
-settings['outputInterval_log'] = settings['outputInterval_gsd']/4 # Number of time steps between data storage in log file
+settings['outputInterval_gsd'] = 2500 # Number of time steps between data storage in gsd file
+settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
 settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
