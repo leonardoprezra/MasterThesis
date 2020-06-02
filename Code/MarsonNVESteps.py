@@ -1,4 +1,6 @@
 '''
+HARD SPHERES SIMULATION
+
 Simulation of Platonic Polyhedral Sphere Clusters (PSCs)
 based on the work of Marson et al
 https://doi.org/10.1039/C9SM00664H
@@ -148,6 +150,15 @@ if dimensions == 2:
 elif dimensions == 3:
     vol = math.pi/6*halo_diam**3 * total_N
 
+# Adjust density
+density = 0.60
+if dimensions == 2:
+    boxLen = math.sqrt(vol / density)
+elif dimensions == 3:
+    boxLen = math.pow(vol / density, 1/3)
+
+hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
 
@@ -193,36 +204,29 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      dynamic=['momentum'],
                      overwrite=True)
 
-density = 0.60
-if dimensions == 2:
-    boxLen = math.sqrt(vol / density)
-elif dimensions == 3:
-    boxLen = math.pow(vol / density, 1/3)
 
-hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
-
-for dens in range(6000, 8001, 1):
+for dens in range(6000, 7401, 1):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
 
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=False)
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
     hoomd.run(equil_steps)
 
 print('Final Compression')
 print(vol/system.box.get_volume())
 
-for dens in range(8000, 5999, -1):
+for dens in range(7400, 5999, -1):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
 
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=False)
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
     hoomd.run(equil_steps)
 

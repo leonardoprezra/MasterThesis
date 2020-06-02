@@ -37,7 +37,7 @@ settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
 settings['outputInterval_gsd'] = 10000
 # Number of time steps between data storage in log file
-settings['outputInterval_log'] = 2500
+settings['outputInterval_log'] = 10
 settings['equil_steps'] = 10000  # Number of equilibration steps
 settings['ratio'] = 1
 settings['tstep_multiplier'] = 0.005
@@ -62,11 +62,11 @@ for a in range(3, 11, 1):
             'integrator': 'nve',
             'poly': '2Dspheres',
             'dimensions': 2,
-            'N_cluster': start_N_cluster ,
+            'N_cluster': start_N_cluster,
             'ratio': a/10,
             'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
             # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-            }]
+         }]
 
 
 # Run Simulations
