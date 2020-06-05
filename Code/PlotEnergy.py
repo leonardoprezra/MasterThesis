@@ -168,7 +168,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 dimensions = int(d[1].split('_')[4].split('-')[1])
                 total_N = int(d[1].split('_')[2].split('-')[1])
 
-                if d[1].split('_')[4].split('-')[1] == 'one':
+                if d[1].split('_')[1].split('-')[1] == 'one':
                     if dimensions == 3:
                         vol = math.pi/6*1**3 * total_N
                     if dimensions == 2:
