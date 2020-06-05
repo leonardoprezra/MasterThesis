@@ -214,9 +214,9 @@ for dens in range(6000, 7401, 1):
 
     hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-    hoomd.run(equil_steps)
+    hoomd.run(equil_steps, quiet=True)
 
-print('Final Compression')
+print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
 print(vol/system.box.get_volume())
 
 for dens in range(7400, 5999, -1):
@@ -228,9 +228,9 @@ for dens in range(7400, 5999, -1):
 
     hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-    hoomd.run(equil_steps)
+    hoomd.run(equil_steps, quiet=True)
 
-print('Final Expansion')
+print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
 print(vol/system.box.get_volume())
 
 

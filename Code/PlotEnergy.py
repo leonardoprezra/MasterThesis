@@ -160,7 +160,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
             # Check if file matches combination of type of cluster, number of clusters and particles per cluster
             if d[0] == t and d[1].split('_')[2] == st1 and d[1].split('_')[5] == st2:
                 # Label includes: (5) Nclus, (4) dim, (3) VF, (7) ratio
-                label = d[1].split('_')[4] + '_' + d[1].split('_')[5] + '_' + d[1].split('_')[7]
+                label = d[1].split('_')[4] + '_' + \
+                    d[1].split('_')[5] + '_' + d[1].split('_')[7]
                 data = np.genfromtxt(fname=d[2], skip_header=True)
 
                 # Check dimensions
@@ -172,16 +173,15 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                         vol = math.pi/6*1**3 * total_N
                     if dimensions == 2:
                         vol = math.pi/4*1**2 * total_N
-                else :
+                else:
                     poly_key = d[1].split('_')[1].split('-')[1]
                     N_cluster = int(d[1].split('_')[5].split('-')[1])
                     ratio = float(d[1].split('_')[7].split('-')[1])
 
                     cluster = PartCluster(
-    poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio)
-                    
-                    vol = cluster.vol_cluster(dimensions) * total_N
+                        poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio)
 
+                    vol = cluster.vol_cluster(dimensions) * total_N
 
                 ax5_1.plot(vol / data[:, 1], data[:, 9], label=label)
 
