@@ -174,10 +174,16 @@ lj.pair_coeff.set('core', 'core', epsilon=epsilon_u, sigma=sigma_u)
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
+'''
 langevin = hoomd.md.integrate.langevin(
     group=hoomd.group.all(), kT=settings['kT_equil'], seed=settings['seed'])
 
 langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
+'''
+nve = hoomd.md.integrate.nve(group=hoomd.group.all())
+
+nve.randomize_velocities( kT=settings['kT_equil'], seed=settings['seed'])
+
 # Store snapshot information
 hoomd.dump.gsd(filename='{:s}_initial.gsd'.format(nameString), group=hoomd.group.all(),
                overwrite=True, period=None)
@@ -214,9 +220,9 @@ for dens in range(6000, 7401, 1):
 
     hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-    hoomd.run(equil_steps)
+    hoomd.run(equil_steps, quiet=True)
 
-print('Final Compression')
+print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
 print(vol/system.box.get_volume())
 
 for dens in range(7400, 5999, -1):
@@ -228,9 +234,9 @@ for dens in range(7400, 5999, -1):
 
     hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-    hoomd.run(equil_steps)
+    hoomd.run(equil_steps, quiet=True)
 
-print('Final Expansion')
+print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
 print(vol/system.box.get_volume())
 
 
