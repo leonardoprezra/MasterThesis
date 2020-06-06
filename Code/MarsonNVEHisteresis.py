@@ -147,11 +147,17 @@ elif settings['ratio'] < 1 and settings['ratio'] > 0:
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
 rigid = hoomd.group.rigid_center()
+
+'''
 langevin = hoomd.md.integrate.langevin(
     group=rigid, kT=settings['kT_therm'], seed=settings['seed'])
 
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
 langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
+'''
+nve = hoomd.md.integrate.nve(group=rigid)
+
+nve.randomize_velocities( kT=settings['kT_equil'], seed=settings['seed'])
 # Store snapshot information
 # hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
 #                overwrite=True, period=None)
