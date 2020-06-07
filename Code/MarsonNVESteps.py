@@ -174,10 +174,16 @@ lj.pair_coeff.set('core', 'core', epsilon=epsilon_u, sigma=sigma_u)
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
+'''
 langevin = hoomd.md.integrate.langevin(
     group=hoomd.group.all(), kT=settings['kT_equil'], seed=settings['seed'])
 
 langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
+'''
+nve = hoomd.md.integrate.nve(group=hoomd.group.all())
+
+nve.randomize_velocities( kT=settings['kT_equil'], seed=settings['seed'])
+
 # Store snapshot information
 hoomd.dump.gsd(filename='{:s}_initial.gsd'.format(nameString), group=hoomd.group.all(),
                overwrite=True, period=None)
