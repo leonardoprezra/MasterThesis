@@ -98,7 +98,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                     data[i-10:i, 1]), np.mean(data[i-10:i, 9])] for i in range(500, 2803*500, 500)]
                 data_ave = np.array(data_ave)
 
-                ax5_1.plot(data_ave[:, 0], data_ave[:, 1], label=label)
+                ax5_1.plot(data_ave[:, 0], data_ave[:, 1], label=label, 'ro')
 
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
