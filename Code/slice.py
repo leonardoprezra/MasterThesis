@@ -64,7 +64,70 @@ def slicegsd(frames, inFN, outFN):
     new_t.append(t[frames])
 
 # Convert .gsd to .pos
+def convert2pos(inFN):
+    '''Convert .gds file to .pos.
 
+    Parameters
+    ----------
+    inFN : str
+        Input .gsd file.
+
+    Returns
+    -------
+    None
+    '''
+    t = gsd.hoomd.open(name=inFN, mode='rb')
+    print('!!!!!!!!!!!!!!!!!!!')
+    print(inFN)
+    print(inFN.split('/')[1].split('_')[1].split('-')[1])
+
+    shape = inFN.split('/')[1].split('_')[1].split('-')[1]
+
+    if shape != 'one' :
+        # Diameter of core particles
+        for i in range(t[0].particles.N):
+            if t[0].particles.typeid[i] == 0:
+                diam_core = t[0].particles.diameter[i]
+                break
+        
+        # Diameter of halo particles
+        for i in range(t[0].particles.N):
+            if t[0].particles.typeid[i] == 1:
+                diam_halo = t[0].particles.diameter[i]
+                break
+    else :
+        # Diameter of core particles
+        for i in range(t[0].particles.N):
+            if t[0].particles.typeid[i] == 0:
+                diam_core = t[0].particles.diameter[i]
+                break
+
+    with open(inFN[:-3] + 'pos', 'w') as file1:
+
+        for f in t:
+
+            box = f.configuration.box
+
+            if shape != 'one' :
+                file1.write("box {:f} {:f} {:f}\n".format(box[0], box[1], box[2]))
+                file1.write('def A "sphere {:f} FF0000"\n'.format(diam_core)) # Red
+                file1.write('def B "sphere {:f} 0000FF"\n'.format(diam_halo)) # Blue
+            else :
+                file1.write("box {:f} {:f} {:f}\n".format(box[0], box[1], box[2]))
+                file1.write('def A "sphere {:f} FF0000"\n'.format(diam_core)) # Red
+
+            
+
+            for i in range(f.particles.N):
+                if f.particles.typeid[i] == 0:
+                    file1.write("A " + "{:f} {:f} {:f}\n".format(
+                        *f.particles.position[i]))
+
+                elif f.particles.typeid[i] == 1:
+                    file1.write("B " + "{:f} {:f} {:f}\n".format(
+                        *f.particles.position[i]))
+
+            file1.write("eof\n")
 
 for in_file in args.in_file:
     # Output .gsd file name
@@ -72,3 +135,5 @@ for in_file in args.in_file:
         in_file.split('/')[-1][:-4]+'_frame-{}.gsd'.format(args.frame_num)
 
     slicegsd(frames=args.frame_num, inFN=in_file, outFN=outFN)
+
+    convert2pos(inFN=outFN)

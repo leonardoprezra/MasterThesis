@@ -224,11 +224,12 @@ class PartCluster:
             poly_key), d=halo_diam, N_spheres=N_cluster)  # Diameter of sphere circunscribing PSC + halo_diam
         self.halo_diam = halo_diam * ratio
         self.poly_key = poly_key
-        self.inertia, self.rot_matrix = mom_inertia(
+        self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
             particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
                                                        # Rotation matrix to rotate from global coordinates to principal axes coordinates
         
-        self.core_coord = quat_rotation(particles=self.core_coord, rot_matrix=self.rot_matrix) # Coordinates of particles in cluster (principal axes coordinates)
+        self.core_coord = quat_rotation(particles=self.core_coord, quat=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
+        
 
     def vol_cluster(self, dimensions):
         if dimensions == 2:
@@ -280,10 +281,10 @@ def mom_inertia(particles, mass):
 
     rot_matrix = np.transpose(princ_axis) 
     #rotation_matrix = princ_axis # Use to rotate on the opposite direction
-    
-    #quaternion = R.from_matrix(rot_matrix).as_quat()
+    r = R.from_matrix(rot_matrix)
+    quaternion = r.as_quat()
 
-    return mom_inertia_princ, rot_matrix
+    return mom_inertia_princ, rot_matrix, quaternion
 
 # Create snapshot for system initialization
 
@@ -436,15 +437,15 @@ def unif_pos(N, d):
     return points, core_diam, sphere_diam
 
 # Rotate points with rotation matrix
-def quat_rotation(particles, rot_matrix):
+def quat_rotation(particles, quat):
     '''Rotate point coordinates according to given rotation matrix.
 
     Parameters
     ----------
     particles : list
         Coordinates of particles in the cluster.
-    rot_matrix : np.array
-        Rotation matrix used for rotation.
+    quat : np.array
+        Quaternion used for rotation.
 
     Returns
     -------
@@ -456,7 +457,26 @@ def quat_rotation(particles, rot_matrix):
     new_particles = []
 
     for p in particles:
-        rot_p = np.matmul(rot_matrix,p)
+        p = np.append([0],p)
+        # rot_p = np.matmul(rot_matrix,p)
+        qp0 = p[0]*quat[0] - np.dot(p[1:] , quat[1:])
+        qp1 = p[0]*quat[1:] + quat[0]*p[1:] + np.cross(p[1:],quat[1:]) 
+
+        qpq0 = qp0*quat[0] - np.dot(qp1 , -quat[1:])
+        qpq1 = qp0*-quat[1:] + quat[0]*qp1 + np.cross(qp1,-quat[1:])
+
+        rot_p = qpq1
         new_particles.append(tuple(rot_p.tolist()))
 
     return new_particles
+
+
+if __name__ == '__main__':
+    cluster = PartCluster(
+    poly_key='2Dspheres', N_cluster=17, halo_diam=1, halo_mass=1, ratio=1)
+
+    print(np.array(cluster.core_coord))
+
+    a = [ math.sqrt(a[0]**2 + a[1]**2 + a[2]**2) for a in cluster.core_coord ]
+    a = np.array(a)
+    print(a)
