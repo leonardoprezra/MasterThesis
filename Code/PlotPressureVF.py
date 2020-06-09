@@ -95,8 +95,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
                 # Averages the last 100 Pressure data points at each VF
                 data_ave = [[vol / np.mean(
-                    data[i-500:i, 1]), np.mean(data[i-500:i, 9])] for i in
-                    range(500, 2803*500, 500)]
+                    data[i-100:i, 1]), np.mean(data[i-100:i, 9])] for i in
+                    range(500, 122*500, 500)]
                 data_ave = np.array(data_ave)
 
                 ax5_1.plot(data_ave[:, 0], data_ave[:, 1], label=label)
