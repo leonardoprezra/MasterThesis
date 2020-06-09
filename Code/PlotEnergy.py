@@ -168,7 +168,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 dimensions = int(d[1].split('_')[4].split('-')[1])
                 total_N = int(d[1].split('_')[2].split('-')[1])
 
-                if d[1].split('_')[1].split('-')[1] == 'one':
+                if d[1].split('_')[4].split('-')[1] == 'one':
                     if dimensions == 3:
                         vol = math.pi/6*1**3 * total_N
                     if dimensions == 2:
@@ -182,6 +182,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                         poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio)
 
                     vol = cluster.vol_cluster(dimensions) * total_N
+
+                data_2 = [[vol / np.mean(data[400:500+i, 1]), np.mean(data[])]]
 
                 ax5_1.plot(vol / data[:, 1], data[:, 9], label=label)
 

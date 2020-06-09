@@ -20,6 +20,7 @@ cube
 dode
 2Dspheres
 3Dspheres
+one
 
 Integrators:
 local
@@ -76,7 +77,7 @@ time_step = settings['time_step']
 equil_steps = settings['equil_steps']
 N_cluster = settings['N_cluster']
 
-sigma_u = settings['diameter']
+sigma_u = settings['diameter']*settings['ratio']
 epsilon_u = settings['epsilon']
 
 # Print the correct number of clusters in the system
@@ -138,26 +139,29 @@ system = hoomd.init.create_lattice(unitcell=uc, n=n)
 
 gall = hoomd.group.all()
 
+'''
 for p in gall:
     p.diameter = halo_diam
+'''
 
 total_N = len(system.particles)  # total number of clusters
 
-print('[II] Snapshot . . . . done.')
 
+# Adjust density
 if dimensions == 2:
     vol = math.pi/4*halo_diam**2 * total_N
 elif dimensions == 3:
     vol = math.pi/6*halo_diam**3 * total_N
 
-# Adjust density
-density = 0.60
+density = 0.68
 if dimensions == 2:
     boxLen = math.sqrt(vol / density)
 elif dimensions == 3:
     boxLen = math.pow(vol / density, 1/3)
 
 hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+
+print('[II] Snapshot . . . . done.')
 
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
@@ -170,7 +174,7 @@ lj.set_params(mode='shift')
 lj.pair_coeff.set('core', 'core', epsilon=epsilon_u, sigma=sigma_u)
 
 
-# # Thermalization
+# # Equilibration
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
@@ -183,13 +187,11 @@ if settings['integrator'] == 'langevin':
 elif settings['integrator'] == 'nve':
     nve = hoomd.md.integrate.nve(group=hoomd.group.all())
 
-    nve.randomize_velocities( kT=settings['kT_equil'], seed=settings['seed'])
+    nve.randomize_velocities(kT=settings['kT_equil'], seed=settings['seed'])
 
 # Store snapshot information
 hoomd.dump.gsd(filename='{:s}_initial.gsd'.format(nameString), group=hoomd.group.all(),
                overwrite=True, period=None)
-# Computes thermodynamical properties of halo particles
-# halo_thermo = hoomd.compute.thermo(group=group_halo)
 
 log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                         quantities=['volume',
@@ -211,8 +213,9 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      dynamic=['momentum'],
                      overwrite=True)
 
+# Increase density
 
-for dens in range(6000, 7401, 10):
+for dens in range(6800, 7410, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -226,7 +229,9 @@ for dens in range(6000, 7401, 10):
 print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
 print(vol/system.box.get_volume())
 
-for dens in range(7400, 5999, -10):
+
+# Decrease density
+for dens in range(7400, 6790, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)

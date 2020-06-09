@@ -11,7 +11,7 @@ settings = {}
 
 settings['N'] = 64  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = '2Dspheres'  # Type of polyhedron
+settings['poly'] = 'one'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
