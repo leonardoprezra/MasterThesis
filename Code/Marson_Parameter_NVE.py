@@ -28,17 +28,17 @@ import sys
 
 # General simulation parameters
 settings = {}
-settings['N'] = 65  # N**2 or N**3 are the number of PSCs
+settings['N'] = 10  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster:2d}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
 settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
-settings['outputInterval_gsd'] = 2500
+settings['outputInterval_gsd'] = 250
 # Number of time steps between data storage in log file
 settings['outputInterval_log'] = 5
-settings['equil_steps'] = 2500  # Number of equilibration steps
+settings['equil_steps'] = 250  # Number of equilibration steps
 settings['ratio'] = 1
 settings['tstep_multiplier'] = 0.005
 settings['sigma'] = settings['diameter'] * \
@@ -57,15 +57,15 @@ tstep_multiplier = settings['tstep_multiplier']
 start_N_cluster = int(sys.argv[1])
 
 parameterspace += [
-        {**settings,
-            'integrator': 'nve',
-            'poly': '2Dspheres',
-            'dimensions': 2,
-            'N_cluster': start_N_cluster,
-            'ratio': 10/10,
-            'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
-            # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
-         }]
+    {**settings,
+     'integrator': 'nve',
+     'poly': '2Dspheres',
+     'dimensions': 2,
+     'N_cluster': start_N_cluster,
+     'ratio': 10/10,
+     'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
+     # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
+     }]
 
 
 # Run Simulations
@@ -107,7 +107,8 @@ for initDict in parameterspace:
     # Run simulations
     out = open(nameString+".outputs", "w")
     proc = subprocess.Popen(["python",  "-u",
-                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresis.py",  # "MarsonNVE.py",  #
+                             # "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresis.py",
+                             "/nishome/students/leonardo/Dokumente/Thesis/Code/MarsonNVE.py",
                              *initString],
                             stdout=out,
                             stderr=out)

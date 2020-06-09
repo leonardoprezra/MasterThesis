@@ -61,7 +61,7 @@ N_cluster = 0
 
 parameterspace += [
     {**settings,
-     'integrator': 'nve',
+     'integrator': 'langevin',
      'poly': 'one',
      'dimensions': 2,
      'N_cluster': N_cluster,

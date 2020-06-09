@@ -66,7 +66,7 @@ N_cluster = int(sys.argv[1])
 
 parameterspace += [
     {**settings,
-     'integrator': 'nve',
+     'integrator': 'langevin',
      'poly': '2Dspheres',
      'dimensions': 2,
      'N_cluster': N_cluster,
@@ -117,6 +117,7 @@ for initDict in parameterspace:
     proc = subprocess.Popen(["python",  "-u",
                              # "MarsonNVE.py",  #
                              "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresisClusters.py",
+                             # "/nishome/students/leonardo/Dokumente/Thesis/Code/MarsonNVEHisteresisClusters.py",
                              *initString],
                             stdout=out,
                             stderr=out)
