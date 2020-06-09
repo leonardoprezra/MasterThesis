@@ -1,4 +1,6 @@
 '''
+HARD SPHERES SIMULATION
+
 Simulation of Platonic Polyhedral Sphere Clusters (PSCs)
 based on the work of Marson et al
 https://doi.org/10.1039/C9SM00664H
@@ -71,7 +73,7 @@ outputInterval_gsd = settings['outputInterval_gsd']
 outputInterval_log = settings['outputInterval_log']
 time_step = settings['time_step']
 
-therm_steps = settings['therm_steps']
+
 equil_steps = settings['equil_steps']
 N_cluster = settings['N_cluster']
 
@@ -101,10 +103,6 @@ print("== using these settings ==")
 for k, v in settings.items():
     print("  {:15s}  =  {:}".format(k, v))
 
-# Core particle properties
-cluster = PartCluster(
-    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
-
 
 # Initialize execution context
 hoomd.context.initialize("")  # "--mode=gpu"
@@ -112,14 +110,58 @@ print('[I] Initialize . . . . done.')
 
 # # Create snapshot for simulation
 # Lattice as starting configuration
-system, rigid, group_core, group_halo, total_N = create_snapshot(
-    cluster=cluster, dimensions=dimensions, N=N)
+a1, a2, a3 = [[1.3, 0, 0],
+              [0, 1.3, 0],
+              [0, 0, 1.3]]
+n = [N, N, N]
 
 if dimensions == 2:
-    boxLen = math.sqrt(cluster.vol_cluster(dimensions) * total_N / density)
+    a1, a2, a3 = [[1.3, 0, 0],
+                  [0, 1.3, 0],
+                  [0, 0, 1]]
+    n = [N, N]
+
+# Creates lattice
+
+uc = hoomd.lattice.unitcell(N=1,
+                            a1=a1,
+                            a2=a2,
+                            a3=a3,
+                            dimensions=dimensions,
+                            position=[(0, 0, 0)],
+                            type_name=['core'],
+                            mass=[halo_mass],
+                            diameter=[halo_diam])
+
+
+# Initialize sys configuration
+system = hoomd.init.create_lattice(unitcell=uc, n=n)
+
+gall = hoomd.group.all()
+
+'''
+for p in gall:
+    p.diameter = halo_diam
+'''
+
+total_N = len(system.particles)  # total number of clusters
+
+
+# Adjust density
+if dimensions == 2:
+    vol = math.pi/4*halo_diam**2 * total_N
 elif dimensions == 3:
-    boxLen = math.pow(cluster.vol_cluster(
-        dimensions) * total_N / density, 1/3)
+    vol = math.pi/6*halo_diam**3 * total_N
+
+density = 0.68
+if dimensions == 2:
+    boxLen = math.sqrt(vol / density)
+elif dimensions == 3:
+    boxLen = math.pow(vol / density, 1/3)
+
+hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+
+print('[II] Snapshot . . . . done.')
 
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
@@ -129,35 +171,27 @@ lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
 
 # Shifts interaction potential, so that its value is zero at the r_cut
 lj.set_params(mode='shift')
-lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
+lj.pair_coeff.set('core', 'core', epsilon=epsilon_u, sigma=sigma_u)
 
-if settings['ratio'] == 1:
-    lj.pair_coeff.set(['halo', 'core'], 'core',
-                      r_cut=False, epsilon=0, sigma=0)
-elif settings['ratio'] < 1 and settings['ratio'] > 0:
-    sigma_core_core = cluster.core_diam
-    lj.pair_coeff.set('core', 'core', r_cut=2**(1/6) *
-                      sigma_core_core, epsilon=epsilon_u, sigma=sigma_core_core)
 
-    sigma_halo_core = cluster.core_diam/2 + cluster.halo_diam/2
-    lj.pair_coeff.set('halo', 'core', r_cut=2**(1/6) *
-                      sigma_halo_core, epsilon=epsilon_u, sigma=sigma_halo_core)
-
-# # Thermalization
+# # Equilibration
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
-rigid = hoomd.group.rigid_center()
-langevin = hoomd.md.integrate.langevin(
-    group=rigid, kT=settings['kT_therm'], seed=settings['seed'])
+if settings['integrator'] == 'langevin':
+    langevin = hoomd.md.integrate.langevin(
+        group=hoomd.group.all(), kT=settings['kT_equil'], seed=settings['seed'])
 
-langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
-langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
+    langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
+
+elif settings['integrator'] == 'nve':
+    nve = hoomd.md.integrate.nve(group=hoomd.group.all())
+
+    nve.randomize_velocities(kT=settings['kT_equil'], seed=settings['seed'])
+
 # Store snapshot information
-# hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
-#                overwrite=True, period=None)
-# Computes thermodynamical properties of halo particles
-# halo_thermo = hoomd.compute.thermo(group=group_halo)
+hoomd.dump.gsd(filename='{:s}_initial.gsd'.format(nameString), group=hoomd.group.all(),
+               overwrite=True, period=None)
 
 log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                         quantities=['volume',
@@ -179,54 +213,37 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      dynamic=['momentum'],
                      overwrite=True)
 
-hoomd.run(therm_steps)
+# Increase density
 
-# # Compression
-langevin.disable()
+for dens in range(6800, 7410, 10):
+    dens = dens / 10000
+    if dimensions == 2:
+        boxLen = math.sqrt(vol / dens)
+    elif dimensions == 3:
+        boxLen = math.pow(vol / dens, 1/3)
 
-# Retrieve current pressure value
-pressure = log.query('pressure')
-print('PRESSURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{0:.8f}\n'.format(pressure))
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-npt = hoomd.md.integrate.npt(
-    group=rigid, kT=settings['kT_npt'], tau=settings['tau'], P=settings['pressure'], tauP=settings['tauP'])
+    hoomd.run(equil_steps, quiet=True)
 
-density_compression = cluster.vol_cluster(
-    dimensions)*total_N/system.box.get_volume()
-density_compression_control = density_compression
-
-
-while density_compression < density:
-    hoomd.run(10, quiet=True)
-    density_compression = cluster.vol_cluster(
-        dimensions)*total_N/system.box.get_volume()
-
-    # print(density_compression)
-
-if poly_key == '2Dspheres' and N_cluster == 3:
-    hoomd.update.box_resize(Ly=boxLen*boxLen/system.box.Lx,
-                            period=None, scale_particles=False)
-else:
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=False)
-
-print('Final density')
-print(cluster.vol_cluster(dimensions)*total_N/system.box.get_volume())
-
-# # Equilibration at final volume fraction
-npt.disable()
-langevin.enable()
-
-log_equil = hoomd.analyze.log(filename='{:s}_ENERGY.log'.format(nameString),
-                              quantities=['potential_energy',
-                                          'kinetic_energy',
-                                          'translational_kinetic_energy',
-                                          'rotational_kinetic_energy'],
-                              period=outputInterval_log,
-                              overwrite=True)
+print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
+print(vol/system.box.get_volume())
 
 
-langevin.set_params(kT=settings['kT_equil'])
-hoomd.run(equil_steps)
+# Decrease density
+for dens in range(7400, 6790, -10):
+    dens = dens / 10000
+    if dimensions == 2:
+        boxLen = math.sqrt(vol / dens)
+    elif dimensions == 3:
+        boxLen = math.pow(vol / dens, 1/3)
+
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+
+    hoomd.run(equil_steps, quiet=True)
+
+print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
+print(vol/system.box.get_volume())
 
 
 end_time = time.time()

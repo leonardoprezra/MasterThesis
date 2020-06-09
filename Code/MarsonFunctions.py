@@ -42,7 +42,7 @@ settings['therm_steps'] = 8000  # Number of thermalization steps
 
 settings['outputInterval_gsd'] = 2500 # Number of time steps between data storage in gsd file
 settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
-settings['tstep_multiplier'] = 0.001
+settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
 

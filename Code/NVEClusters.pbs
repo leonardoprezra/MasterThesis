@@ -1,0 +1,27 @@
+#!/bin/bash -l
+# Batch processing script
+
+
+#PBS -l nodes=1:ppn=4,walltime=06:30:00
+#PBS -N rigidHoomd
+#PBS -t 2,6,10
+
+
+# Load required modules (compiler, ...)
+module load python/3.7-anaconda
+module load cuda/10.0
+module load cmake/3.11.1
+# Activate local environment where hoomd is installed
+source activate localconda
+
+# change to temporary job data directory
+# located in node, between 400-900GB
+cd  $WORK
+
+# run simulation
+python $HOME/MasterThesis/Code/Marson_Parameter_HisteresisClusters.py $(($PBS_ARRAYID+1))  &
+python $HOME/MasterThesis/Code/Marson_Parameter_HisteresisClusters.py $(($PBS_ARRAYID+2))  &
+python $HOME/MasterThesis/Code/Marson_Parameter_HisteresisClusters.py $(($PBS_ARRAYID+3))  &
+python $HOME/MasterThesis/Code/Marson_Parameter_HisteresisClusters.py $(($PBS_ARRAYID+4))  &
+
+wait
