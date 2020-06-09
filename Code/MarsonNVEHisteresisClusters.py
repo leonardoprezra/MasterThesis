@@ -103,7 +103,7 @@ for k, v in settings.items():
 
 # Core particle properties
 cluster = PartCluster(
-    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'], dimensions=dimensions)
+    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
 
 
 # Initialize execution context

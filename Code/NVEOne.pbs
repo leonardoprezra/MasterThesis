@@ -19,6 +19,6 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python $HOME/MasterThesis/Code/Marson_Parameter_HisteresisOne.py &
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisOne.py &
 
 wait
