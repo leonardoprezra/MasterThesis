@@ -107,13 +107,19 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
                     vol = cluster.vol_cluster(dimensions) * total_N
 
-                # Averages the last 100 Pressure data points at each VF
+                # Averages the Pressure data points at each VF
                 data_ave = [[vol / np.mean(
                     data[i-args.frame_ave:i, 1]), np.mean(data[i-args.frame_ave:i, 9])] for i in
                     range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
                 data_ave = np.array(data_ave)
 
+                # Error bars
+                error = [np.std(data[i-args.frame_ave:i, 9]) for i in
+                         range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
+
                 ax5_1.plot(data_ave[:, 0], data_ave[:, 1], label=label)
+                ax5_1.errorbar(
+                    data_ave[:, 0], data_ave[:, 1], yerr=error, label='N_ave='+str(args.frame_ave))
 
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
