@@ -11,7 +11,7 @@ settings = {}
 
 settings['N'] = 64  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = '2Dspheres'  # Type of polyhedron
+settings['poly'] = 'one'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
@@ -42,7 +42,7 @@ settings['therm_steps'] = 8000  # Number of thermalization steps
 
 settings['outputInterval_gsd'] = 2500 # Number of time steps between data storage in gsd file
 settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
-settings['tstep_multiplier'] = 0.005
+settings['tstep_multiplier'] = 0.001
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
 
