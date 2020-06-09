@@ -174,15 +174,16 @@ lj.pair_coeff.set('core', 'core', epsilon=epsilon_u, sigma=sigma_u)
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 # creates grooup consisting of central particles in rigid body
-'''
-langevin = hoomd.md.integrate.langevin(
-    group=hoomd.group.all(), kT=settings['kT_equil'], seed=settings['seed'])
+if settings['integrator'] == 'langevin':
+    langevin = hoomd.md.integrate.langevin(
+        group=hoomd.group.all(), kT=settings['kT_equil'], seed=settings['seed'])
 
-langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
-'''
-nve = hoomd.md.integrate.nve(group=hoomd.group.all())
+    langevin.set_gamma(a='core', gamma=settings['fric_coeff'])
 
-nve.randomize_velocities( kT=settings['kT_equil'], seed=settings['seed'])
+elif settings['integrator'] == 'nve':
+    nve = hoomd.md.integrate.nve(group=hoomd.group.all())
+
+    nve.randomize_velocities( kT=settings['kT_equil'], seed=settings['seed'])
 
 # Store snapshot information
 hoomd.dump.gsd(filename='{:s}_initial.gsd'.format(nameString), group=hoomd.group.all(),
@@ -211,7 +212,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      overwrite=True)
 
 
-for dens in range(6000, 7401, 1):
+for dens in range(6000, 7401, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -225,7 +226,7 @@ for dens in range(6000, 7401, 1):
 print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
 print(vol/system.box.get_volume())
 
-for dens in range(7400, 5999, -1):
+for dens in range(7400, 5999, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
