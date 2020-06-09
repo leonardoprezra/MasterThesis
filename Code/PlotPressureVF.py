@@ -12,6 +12,20 @@ import numpy as np
 import os
 import math
 from MarsonFunctions import PartCluster
+import argparse
+
+# Command line argument parsing
+parser = argparse.ArgumentParser(
+    description='Plots Volume Fraction vs Pressure from .log file')
+parser.add_argument('-a', '--frame-average', type=int, dest='frame_ave',
+                    help='number of frames to average')
+parser.add_argument('-j', '--frame-jump', type=int, dest='frame_jump',
+                    help='number of frames at the same Volume Fraction')
+parser.add_argument('-t', '--frame-total', type=int, dest='frame_total',
+                    help='tota number of frames in the .log file')
+
+args = parser.parse_args()
+
 
 # Get path to current working directory
 path = os.getcwd()
@@ -95,8 +109,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
                 # Averages the last 100 Pressure data points at each VF
                 data_ave = [[vol / np.mean(
-                    data[i-100:i, 1]), np.mean(data[i-100:i, 9])] for i in
-                    range(500, 122*500, 500)]
+                    data[i-args.frame_ave:i, 1]), np.mean(data[i-args.frame_ave:i, 9])] for i in
+                    range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
                 data_ave = np.array(data_ave)
 
                 ax5_1.plot(data_ave[:, 0], data_ave[:, 1], label=label)

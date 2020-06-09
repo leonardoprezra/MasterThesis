@@ -183,8 +183,6 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
                     vol = cluster.vol_cluster(dimensions) * total_N
 
-                data_2 = [[vol / np.mean(data[400:500+i, 1]), np.mean(data[])]]
-
                 ax5_1.plot(vol / data[:, 1], data[:, 9], label=label)
 
         ax5_1.set_ylabel('Pressure / -')
