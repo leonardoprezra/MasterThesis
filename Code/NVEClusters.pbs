@@ -2,7 +2,7 @@
 # Batch processing script
 
 
-#PBS -l nodes=1:ppn=4,walltime=06:30:00
+#PBS -l nodes=1:ppn=4,walltime=00:30:00
 #PBS -N rigidClusters
 #PBS -t 2,6,10
 

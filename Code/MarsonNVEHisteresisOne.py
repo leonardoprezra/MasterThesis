@@ -153,13 +153,15 @@ if dimensions == 2:
 elif dimensions == 3:
     vol = math.pi/6*halo_diam**3 * total_N
 
-density = 0.68
+dens = 0.68
 if dimensions == 2:
-    boxLen = math.sqrt(vol / density)
+    boxLen = math.sqrt(vol / dens)
+    hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                            period=None, scale_particles=True)
 elif dimensions == 3:
-    boxLen = math.pow(vol / density, 1/3)
+    boxLen = math.pow(vol / dens, 1/3)
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
 print('[II] Snapshot . . . . done.')
 
@@ -190,8 +192,6 @@ elif settings['integrator'] == 'nve':
     nve.randomize_velocities(kT=settings['kT_equil'], seed=settings['seed'])
 
 # Store snapshot information
-hoomd.dump.gsd(filename='{:s}_initial.gsd'.format(nameString), group=hoomd.group.all(),
-               overwrite=True, period=None)
 
 log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                         quantities=['volume',
@@ -219,10 +219,11 @@ for dens in range(6800, 7410, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
+        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                period=None, scale_particles=True)
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
-
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
     hoomd.run(equil_steps, quiet=True)
 
@@ -235,10 +236,11 @@ for dens in range(7400, 6790, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
+        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                period=None, scale_particles=True)
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
-
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
     hoomd.run(equil_steps, quiet=True)
 

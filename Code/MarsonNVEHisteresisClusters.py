@@ -118,13 +118,14 @@ system, rigid, group_core, group_halo, total_N = create_snapshot(
 # Adjust density
 vol = cluster.vol_cluster(dimensions) * total_N
 
-density = 0.68
+dens = 0.68
 if dimensions == 2:
-    boxLen = math.sqrt(vol / density)
+    boxLen = math.sqrt(vol / dens)
+    hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                            period=None, scale_particles=True)
 elif dimensions == 3:
-    boxLen = math.pow(vol / density, 1/3)
-
-hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+    boxLen = math.pow(vol / dens, 1/3)
+    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
@@ -195,10 +196,11 @@ for dens in range(6800, 8010, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
+        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                period=None, scale_particles=True)
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
-
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
     hoomd.run(equil_steps)
 
@@ -211,10 +213,11 @@ for dens in range(8000, 6790, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
+        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                period=None, scale_particles=True)
     elif dimensions == 3:
         boxLen = math.pow(vol / dens, 1/3)
-
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
     hoomd.run(equil_steps)
 
