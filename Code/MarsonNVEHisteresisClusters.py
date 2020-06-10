@@ -118,7 +118,7 @@ system, rigid, group_core, group_halo, total_N = create_snapshot(
 # Adjust density
 vol = cluster.vol_cluster(dimensions) * total_N
 
-dens = 0.68
+dens = 0.55
 if dimensions == 2:
     boxLen = math.sqrt(vol / dens)
     hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
@@ -192,7 +192,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(6800, 8010, 10):
+for dens in range(5500, 8210, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -209,7 +209,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(8000, 6790, -10):
+for dens in range(8200, 5490, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
