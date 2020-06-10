@@ -228,7 +228,7 @@ class PartCluster:
             particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
                                                        # Rotation matrix to rotate from global coordinates to principal axes coordinates
         
-        self.core_coord = quat_rotation(particles=self.core_coord, quat=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
+        #self.core_coord = quat_rotation(particles=self.core_coord, quat=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
         
 
     def vol_cluster(self, dimensions):
