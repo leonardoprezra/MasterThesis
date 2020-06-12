@@ -9,17 +9,17 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 64  # N**2 or N**3 are the number of PSCs
+settings['N'] = 10  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1.0  # Diameter of halo particles
-settings['poly'] = 'one'  # Type of polyhedron
+settings['poly'] = '2Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
-settings['N_cluster'] = 0  # number of spheres in cluster
+settings['N_cluster'] = 3  # number of spheres in cluster
 settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 
-settings['integrator'] = 'nve'  # Integrator
+settings['integrator'] = 'langevin'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster:2d}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
 settings["initFile"] = "None"
 
@@ -37,10 +37,10 @@ settings['tau'] = 1.0  # Coupling constant for the thermostat (NPT)
 settings['pressure'] = 50  # Isotropic pressure set point for barostat (NPT)
 tauP = settings['tauP'] = 1.2  # Coupling constant for the barostat (NPT)
 
-settings['equil_steps'] = 2500  # Number of equilibration steps
+settings['equil_steps'] = 50  # Number of equilibration steps
 settings['therm_steps'] = 8000  # Number of thermalization steps
 
-settings['outputInterval_gsd'] = 2500 # Number of time steps between data storage in gsd file
+settings['outputInterval_gsd'] = 50 # Number of time steps between data storage in gsd file
 settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
 settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
@@ -220,9 +220,8 @@ class PartCluster:
             poly_key), mass=halo_mass, N_spheres=N_cluster)  # Mass of core particles
         self.N_cluster = core_properties(poly='{}_N'.format(
             poly_key), N_spheres=N_cluster)  # Number of particles in cluster
-        self.sphere_diam = core_properties(poly='{}_sphere_diam'.format(
-            poly_key), d=halo_diam, N_spheres=N_cluster)  # Diameter of sphere circunscribing PSC + halo_diam
         self.halo_diam = halo_diam * ratio
+        self.sphere_diam = self.core_diam + 2*self.halo_diam  # Diameter of sphere circunscribing PSC
         self.poly_key = poly_key
         self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
             particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
@@ -481,11 +480,16 @@ def quat_rotation(particles, q):
 
 if __name__ == '__main__':
     cluster = PartCluster(
-    poly_key='2Dspheres', N_cluster=3, halo_diam=1, halo_mass=1, ratio=1)
+    poly_key='2Dspheres', N_cluster=3, halo_diam=1, halo_mass=1, ratio=0.6)
     print('\nCOORDINATES')
     print(cluster.core_coord)
 
     radius = [LA.norm(p) for p in cluster.core_coord]
     print('\nRADIUS CIRCLE')
     print(np.array(radius))
+
+    print('\nCORE DIAMETER')
+    print(cluster.core_diam)
+    print('\nHALO DIAMETER')
+    print(cluster.halo_diam)
 

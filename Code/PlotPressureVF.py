@@ -117,9 +117,10 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 error = [np.std(data[i-args.frame_ave:i, 9]) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
 
-                ax5_1.plot(data_ave[:, 0], data_ave[:, 1], label=label)
+                ax5_1.plot(data_ave[:, 0], data_ave[:, 1],
+                           label=label, linewidth=2)
                 ax5_1.errorbar(
-                    data_ave[:, 0], data_ave[:, 1], yerr=error, label='N_ave='+str(args.frame_ave))
+                    data_ave[:, 0], data_ave[:, 1], yerr=error, label='N_ave='+str(args.frame_ave), linewidth=0.5)
 
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
@@ -130,5 +131,5 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
         ax5_1.legend()
         # fig4.tight_layout()
         fig5.savefig(
-            'thermo_plots/PressureVF_{}_{}_{}.png'.format(t, st1, st2))
+            'thermo_plots/PressureVF_{}_{}_{}.pdf'.format(t, st1, st2), format='pdf')
         plt.clf()

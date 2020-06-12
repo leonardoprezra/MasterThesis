@@ -115,17 +115,6 @@ print('[I] Initialize . . . . done.')
 system, rigid, group_core, group_halo, total_N = create_snapshot(
     cluster=cluster, dimensions=dimensions, N=N)
 
-# Adjust density
-vol = cluster.vol_cluster(dimensions) * total_N
-
-dens = 0.55
-if dimensions == 2:
-    boxLen = math.sqrt(vol / dens)
-    hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
-                            period=None, scale_particles=True)
-elif dimensions == 3:
-    boxLen = math.pow(vol / dens, 1/3)
-    hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
@@ -136,6 +125,7 @@ lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
 # Shifts interaction potential, so that its value is zero at the r_cut
 lj.set_params(mode='shift')
 lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
+
 
 if settings['ratio'] == 1:
     lj.pair_coeff.set(['halo', 'core'], 'core',
@@ -169,6 +159,39 @@ elif settings['integrator'] == 'nve':
     nve.randomize_velocities(kT=settings['kT_equil'], seed=settings['seed'])
 
 
+# Adjust density before actual run
+vol = cluster.vol_cluster(dimensions) * total_N
+
+print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
+print(vol/system.box.get_volume())
+
+pre_dens = vol/system.box.get_volume()
+dens = 0.45
+
+if dimensions == 2:
+    if dimensions == 2:
+        boxLen = math.sqrt(vol / dens)
+        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                period=None, scale_particles=True)
+    elif dimensions == 3:
+        boxLen = math.pow(vol / dens, 1/3)
+        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+
+elif dimensions == 3:
+    for dens in range(int(pre_dens*10000), int(dens*10000), 100):
+        dens = dens / 10000
+        if dimensions == 2:
+            boxLen = math.sqrt(vol / dens)
+            hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                    period=None, scale_particles=True)
+        elif dimensions == 3:
+            boxLen = math.pow(vol / dens, 1/3)
+            hoomd.update.box_resize(
+                L=boxLen, period=None, scale_particles=True)
+
+        hoomd.run(500, quiet=True)
+
+
 # Store snapshot information
 
 log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
@@ -194,7 +217,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(5500, 8210, 10):
+for dens in range(4500, 6510, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -211,7 +234,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(8200, 5490, -10):
+for dens in range(6500, 4490, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
