@@ -39,10 +39,10 @@ import argparse
 parser = argparse.ArgumentParser(
     description='Extract the last <frame_num> of the <in_file> and saves them as .gsd and .pos.')
 parser.add_argument('-r', '--ratio', type=float, dest='ratio',
-                    help='ratio of diameter of halo particle to edge length of polyhedra')
+                    help='ratio of diameter of halo particle to edge length of polyhedra. Once read, it will be divided by 1000')
 
 args = parser.parse_args()
-
+args.ratio /= 1000
 
 # General simulation parameters
 settings = {}

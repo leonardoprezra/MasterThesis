@@ -19,9 +19,9 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $((($PBS_ARRAYID)/1000))  &
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $((($PBS_ARRAYID+25)/1000))  &
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $((($PBS_ARRAYID+50)/1000))  &
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $((($PBS_ARRAYID+75)/1000))  &
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID)) &
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID+25))  &
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID+50))  &
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID+75))  &
 
 wait
