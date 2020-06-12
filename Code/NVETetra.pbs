@@ -3,7 +3,7 @@
 
 
 #PBS -l nodes=1:ppn=4,walltime=12:30:00
-#PBS -N rigidClusters
+#PBS -N rigidTetra
 #PBS -t 625,725,825,925
 
 
