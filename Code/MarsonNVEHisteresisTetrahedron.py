@@ -217,7 +217,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(4500, 6510, 10):
+for dens in range(4500, 7010, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -234,7 +234,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(6500, 4490, -10):
+for dens in range(7000, 4490, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
