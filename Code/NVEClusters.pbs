@@ -2,9 +2,9 @@
 # Batch processing script
 
 
-#PBS -l nodes=1:ppn=4,walltime=12:30:00
+#PBS -l nodes=1:ppn=4,walltime=4:30:00
 #PBS -N rigidClusters
-#PBS -t 2,6,10
+#PBS -t 14
 
 
 # Load required modules (compiler, ...)
