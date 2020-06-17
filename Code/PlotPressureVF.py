@@ -178,7 +178,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 # ax1_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)
                 ax1_1.errorbar(
-                    data_ave[:, 0], data_ave[:, 1], yerr=error, label='N_ave='+str(args.frame_ave), linewidth=0.5)
+                    data_ave[:, 0], data_ave[:, 1], yerr=error, label=label, linewidth=0.5)
 
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
