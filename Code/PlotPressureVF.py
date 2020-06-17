@@ -117,8 +117,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 error = [np.std(data[i-args.frame_ave:i, 9]) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
 
-                ax5_1.plot(data_ave[:, 0], data_ave[:, 1],
-                           label=label, linewidth=2)
+                # ax5_1.plot(data_ave[:, 0], data_ave[:, 1],
+                #           label=label, linewidth=2)
                 ax5_1.errorbar(
                     data_ave[:, 0], data_ave[:, 1], yerr=error, label='N_ave='+str(args.frame_ave), linewidth=0.5)
 
@@ -132,4 +132,62 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
         # fig4.tight_layout()
         fig5.savefig(
             'thermo_plots/PressureVF_{}_{}_{}.pdf'.format(t, st1, st2), format='pdf')
+        plt.clf()
+
+        # Plot Pressure-VF
+        fig1 = plt.figure(1)
+        ax1_1 = fig1.add_subplot(1, 1, 1)
+        ax1_1.set_title('{}\n{}'.format(t, st1))
+        for d in data_names:
+            # Check if file matches combination of type of cluster, number of clusters and particles per cluster
+            if d[0] == t and d[1].split('_')[2] == st1 and d[1].split('_')[5] == st2:
+                # Label includes: (5) Nclus, (4) dim, (3) VF, (7) ratio
+                label = d[1].split('_')[4] + '_' + \
+                    d[1].split('_')[5] + '_' + d[1].split('_')[7]
+                data = np.genfromtxt(fname=d[2], skip_header=True)
+
+                # Check dimensions
+                dimensions = int(d[1].split('_')[4].split('-')[1])
+                total_N = int(d[1].split('_')[2].split('-')[1])
+
+                if d[1].split('_')[1].split('-')[1] == 'one':
+                    if dimensions == 3:
+                        vol = math.pi/6*1**3 * total_N
+                    if dimensions == 2:
+                        vol = math.pi/4*1**2 * total_N
+                else:
+                    poly_key = d[1].split('_')[1].split('-')[1]
+                    N_cluster = int(d[1].split('_')[5].split('-')[1])
+                    ratio = float(d[1].split('_')[7].split('-')[1])
+
+                    cluster = PartCluster(
+                        poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio)
+
+                    vol = cluster.vol_cluster(dimensions) * total_N
+
+                # Averages the Energy data points at each VF
+                data_ave = [[vol / np.mean(
+                    data[i-args.frame_ave:i, 1]), np.mean(data[i-args.frame_ave:i, 4] + data[i-args.frame_ave:i, 5])] for i in
+                    range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
+                data_ave = np.array(data_ave)
+
+                # Error bars
+                error = [np.std(data[i-args.frame_ave:i, 4] + data[i-args.frame_ave:i, 5]) for i in
+                         range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
+
+                # ax1_1.plot(data_ave[:, 0], data_ave[:, 1],
+                #           label=label, linewidth=2)
+                ax1_1.errorbar(
+                    data_ave[:, 0], data_ave[:, 1], yerr=error, label='N_ave='+str(args.frame_ave), linewidth=0.5)
+
+                print('!!!!!!!!!!!!!!!!!!!!!\n' +
+                      str(d[1]) + '\n' + str(data_ave.shape))
+
+        ax1_1.set_ylabel('Energy / -')
+        ax1_1.set_xlabel('VF / -')
+        # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
+        ax1_1.legend()
+        # fig4.tight_layout()
+        fig1.savefig(
+            'thermo_plots/EnergyVF_{}_{}_{}.pdf'.format(t, st1, st2), format='pdf')
         plt.clf()
