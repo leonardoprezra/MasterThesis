@@ -20,7 +20,7 @@ settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 
 settings['integrator'] = 'langevin'  # Integrator
-settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster:2d}_tstep-{time_step:7.5f}_ratio-{ratio:4.2f}_tmult-{tstep_multiplier:5.3f}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}'
 settings["initFile"] = "None"
 
 settings['seed'] = 42  # Random number seed (HPMC, LANGEVIN)
