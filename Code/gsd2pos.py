@@ -57,6 +57,7 @@ def convert2pos(inFN, outFN):
     print(inFN.split('_')[1].split('-')[1])
 
     shape = inFN.split('_')[1].split('-')[1]
+    dimensions = int(inFN.split('_')[4].split('-')[1])
 
     if shape != 'one':
         # Diameter of core particles
@@ -78,34 +79,62 @@ def convert2pos(inFN, outFN):
                 break
 
     with open(outFN[:-3] + 'pos', 'w') as file1:
+        if dimensions == 2:
+            for f in t:
+                box = f.configuration.box
 
-        for f in t:
+                if shape != 'one':
+                    file1.write("box {:f} {:f} {:f}\n".format(
+                        box[0], box[1], 0))
+                    file1.write(
+                        'def A "sphere {:f} FF0000"\n'.format(diam_core))  # Red
+                    file1.write('def B "sphere {:f} 0000FF"\n'.format(
+                        diam_halo))  # Blue
+                else:
+                    file1.write("box {:f} {:f} {:f}\n".format(
+                        box[0], box[1], 0))
+                    file1.write(
+                        'def A "sphere {:f} FF0000"\n'.format(diam_core))  # Red
 
-            box = f.configuration.box
+                for i in range(f.particles.N):
+                    if f.particles.typeid[i] == 0:
+                        file1.write("A " + "{:f} {:f} {:f}\n".format(
+                            *f.particles.position[i]))
 
-            if shape != 'one':
-                file1.write("box {:f} {:f} {:f}\n".format(
-                    box[0], box[1], box[2]))
-                file1.write(
-                    'def A "sphere {:f} FF0000"\n'.format(diam_core))  # Red
-                file1.write('def B "sphere {:f} 0000FF"\n'.format(
-                    diam_halo))  # Blue
-            else:
-                file1.write("box {:f} {:f} {:f}\n".format(
-                    box[0], box[1], box[2]))
-                file1.write(
-                    'def A "sphere {:f} FF0000"\n'.format(diam_core))  # Red
+                    elif f.particles.typeid[i] == 1:
+                        file1.write("B " + "{:f} {:f} {:f}\n".format(
+                            *f.particles.position[i]))
 
-            for i in range(f.particles.N):
-                if f.particles.typeid[i] == 0:
-                    file1.write("A " + "{:f} {:f} {:f}\n".format(
-                        *f.particles.position[i]))
+                file1.write("eof\n")
 
-                elif f.particles.typeid[i] == 1:
-                    file1.write("B " + "{:f} {:f} {:f}\n".format(
-                        *f.particles.position[i]))
+        elif dimensions == 3:
+            for f in t:
 
-            file1.write("eof\n")
+                box = f.configuration.box
+
+                if shape != 'one':
+                    file1.write("box {:f} {:f} {:f}\n".format(
+                        box[0], box[1], box[2]))
+                    file1.write(
+                        'def A "sphere {:f} FF0000"\n'.format(diam_core))  # Red
+                    file1.write('def B "sphere {:f} 0000FF"\n'.format(
+                        diam_halo))  # Blue
+                else:
+                    file1.write("box {:f} {:f} {:f}\n".format(
+                        box[0], box[1], box[2]))
+                    file1.write(
+                        'def A "sphere {:f} FF0000"\n'.format(diam_core))  # Red
+
+                for i in range(f.particles.N):
+                    if f.particles.typeid[i] == 0:
+                        file1.write("A " + "{:f} {:f} {:f}\n".format(
+                            *f.particles.position[i]))
+
+                    elif f.particles.typeid[i] == 1:
+                        file1.write("B " + "{:f} {:f} {:f}\n".format(
+                            *f.particles.position[i]))
+
+                file1.write("eof\n")
 
 
 for in_file in args.in_file:

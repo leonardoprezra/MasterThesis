@@ -45,6 +45,11 @@ settings['outputInterval_log'] = 5 # Number of time steps between data storage i
 settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
+settings['fene_k'] = 15
+settings['fene_r0'] = 1.5
+settings['harm_k'] = 1000
+
+
 
 # Core particle properties
 
@@ -189,7 +194,7 @@ class PartCluster:
     core_coord : list
         Local coordinates of halo spheres.
     core_mass : float
-        Total mass of all halo speres.
+        Total mass of all halo spheres.
     N_cluster : int
         Number of halo spheres in the cluster.
     sphere_diam : float
@@ -202,6 +207,8 @@ class PartCluster:
         Diagonal moment of inertia of the cluster.
     rot_matrix : np.array
         Rotation matrix to rotate from local coordinates to coordinates of principal axis.
+    halo_mass: float
+        Mass of a single halo sphere.
 
     Methods
     -------
@@ -228,7 +235,7 @@ class PartCluster:
                                                        # Rotation matrix to rotate from global coordinates to principal axes coordinates
         
         self.core_coord = quat_rotation(particles=self.core_coord, q=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
-        
+        self.halo_mass = halo_mass
 
     def vol_cluster(self, dimensions):
         if dimensions == 2:
@@ -459,7 +466,7 @@ def quat_rotation(particles, q):
     new_particles : list
         Rotated coordinates.
     '''
-    qnorm = LA.norm(q)
+    #qnorm = LA.norm(q)
     q0 = q[0]
     q = q[1:]
 
