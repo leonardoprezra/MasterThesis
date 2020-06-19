@@ -2,9 +2,9 @@
 # Batch processing script
 
 
-#PBS -l nodes=1:ppn=16,walltime=24:00:00
-#PBS -N rigidClusters
-#PBS -t 2,6,10,14
+#PBS -l nodes=1:ppn=4,walltime=06:00:00
+#PBS -N 2DSoft
+#PBS -t 3,4,5,6,7,8,9,10 #,11,12,13,14,15,16,17,18
 
 
 # Load required modules (compiler, ...)
@@ -19,9 +19,5 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python ~/MasterThesis/Code/Gnan_Parameter_Histeresis2DSoft.py $(($PBS_ARRAYID+1))  &
-python ~/MasterThesis/Code/Gnan_Parameter_Histeresis2DSoft.py $(($PBS_ARRAYID+2))  &
-python ~/MasterThesis/Code/Gnan_Parameter_Histeresis2DSoft.py $(($PBS_ARRAYID+3))  &
-python ~/MasterThesis/Code/Gnan_Parameter_Histeresis2DSoft.py $(($PBS_ARRAYID+4))  &
+python ~/MasterThesis/Code/Gnan_Parameter_Histeresis2DSoft.py -n $PBS_ARRAYID
 
-wait

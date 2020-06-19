@@ -33,6 +33,15 @@ import random
 import math
 import sys
 
+import argparse
+
+# Command line argument parsing
+parser = argparse.ArgumentParser(
+    description='Run simulations of rigid 2D clusters.')
+parser.add_argument('-n', '--Number-Spheres', type=int, dest='N_cluster',
+                    help='number of spheres in the cluster')
+
+args = parser.parse_args()
 
 # General simulation parameters
 settings = {}
@@ -62,14 +71,12 @@ parameterspace = []
 
 tstep_multiplier = settings['tstep_multiplier']
 
-N_cluster = int(sys.argv[1])
-
 parameterspace += [
     {**settings,
      'integrator': 'langevin',
      'poly': '2Dspheres',
      'dimensions': 2,
-     'N_cluster': N_cluster,
+     'N_cluster': args.N_cluster,
      'ratio': 1,
      'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
      # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']

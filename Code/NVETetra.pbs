@@ -2,9 +2,9 @@
 # Batch processing script
 
 
-#PBS -l nodes=1:ppn=16,walltime=24:00:00
+#PBS -l nodes=1:ppn=4,walltime=24:00:00
 #PBS -N rigidTetra
-#PBS -t 625,725,825,925
+#PBS -t 600,625,650,675,700,725,750,775,800,825,850,875,900,925,950,975,1000
 
 
 # Load required modules (compiler, ...)
@@ -19,9 +19,5 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID+25))  &
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID+50))  &
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID+75))  &
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $(($PBS_ARRAYID+100))  &
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisTetrahedron.py -r $PBS_ARRAYID
 
-wait
