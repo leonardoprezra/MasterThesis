@@ -66,6 +66,7 @@ titles_subtitle = set(
 titles_subtitle_ENERGY = set(
     [(i[0], i[1].split('_')[2], i[1].split('_')[5]) for i in data_names_ENERGY])
 
+
 # Read and plot data
 for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
     if t_s == titles_subtitle:
@@ -125,6 +126,9 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
 
+        secax = ax5_1.secondary_xaxis('top', functions=(lambda x: (
+            x-data_ave[0, 0])*args.frame_jump, lambda x: x/args.frame_jump + data_ave[0, 0]))
+        secax.set_xlabel('Frame number')
         ax5_1.set_ylabel('Pressure / -')
         ax5_1.set_xlabel('VF / -')
         # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
@@ -134,7 +138,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
             'thermo_plots/PressureVF_{}_{}_{}.pdf'.format(t, st1, st2), format='pdf')
         plt.clf()
 
-        # Plot Pressure-VF
+        # Plot Energy-VF
         fig1 = plt.figure(1)
         ax1_1 = fig1.add_subplot(1, 1, 1)
         ax1_1.set_title('{}\n{}'.format(t, st1))
@@ -183,6 +187,9 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
 
+        secax = ax1_1.secondary_xaxis('top', functions=(lambda x: (
+            x-data_ave[0, 0])*args.frame_jump, lambda x: x/args.frame_jump + data_ave[0, 0]))
+        secax.set_xlabel('Frame number')
         ax1_1.set_ylabel('Energy / -')
         ax1_1.set_xlabel('VF / -')
         # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
