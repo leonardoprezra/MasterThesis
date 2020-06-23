@@ -153,7 +153,7 @@ if dimensions == 2:
 elif dimensions == 3:
     vol = math.pi/6*halo_diam**3 * total_N
 
-dens = 0.68
+dens = 0.69
 if dimensions == 2:
     boxLen = math.sqrt(vol / dens)
     hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
@@ -215,7 +215,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(6800, 7410, 10):
+for dens in range(6900, 7310, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -232,7 +232,7 @@ print(vol/system.box.get_volume())
 
 
 # Decrease density
-for dens in range(7400, 6790, -10):
+for dens in range(7300, 6890, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
