@@ -120,8 +120,12 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
                 # ax5_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)
+                size = data_ave.shape[0]
+                half_size = int(size/2)
                 ax5_1.errorbar(
-                    data_ave[:, 0], data_ave[:, 1], yerr=error, label=label, linewidth=0.5)
+                    data_ave[:half_size, 0], data_ave[:half_size, 1], yerr=error[:half_size], label=label+'_compr', linewidth=0.5)
+                ax5_1.errorbar(
+                    data_ave[half_size:, 0], data_ave[half_size:, 1], yerr=error[half_size:], label=label+'_exp', linewidth=0.5)
 
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
@@ -181,8 +185,12 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
 
                 # ax1_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)
+                size = data_ave.shape[0]
+                half_size = int(size/2)
                 ax1_1.errorbar(
-                    data_ave[:, 0], data_ave[:, 1], yerr=error, label=label, linewidth=0.5)
+                    data_ave[:half_size, 0], data_ave[:half_size, 1], yerr=error[:half_size], label=label+'_compr', linewidth=0.5)
+                ax1_1.errorbar(
+                    data_ave[half_size:, 0], data_ave[half_size:, 1], yerr=error[half_size:], label=label+'_exp', linewidth=0.5)
 
                 print('!!!!!!!!!!!!!!!!!!!!!\n' +
                       str(d[1]) + '\n' + str(data_ave.shape))
