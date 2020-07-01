@@ -137,9 +137,9 @@ for d in args.in_file:
     #ax1_1.plot(x_comp, df_df_comp, '--', label='CD Derivative COMPRESSION')
     #ax1_1.plot(x_exp, df_df_exp, '--', label='CD Derivative EXPANSION')
     ax1_1.plot(root_comp, spline_y_filtered_comp(
-        root_comp), 'o', label='Newton COMPRESSION')
+        root_comp), 'o', label='Inflection Newton COMPRESSION')
     ax1_1.plot(root_exp, spline_y_filtered_exp(
-        root_exp), 'o', label='Newton EXPANSION')
+        root_exp), 'o', label='Inflection Newton EXPANSION')
 
     ax1_1.set_ylabel('Pressure / -')
     ax1_1.set_xlabel('$\phi$ / -')
@@ -149,187 +149,134 @@ for d in args.in_file:
     plt.show()
 
     # # Find area between splines and a line that crosses respective inflection point
-    a_1_comp = []  # Area before inflection point
-    a_2_comp = []  # Area after inflection point
-    m_comp = []  # Slope of the curve
-    diff_a_comp = []  # Difference between areas
+    a_1_comp_ = []  # Area before inflection point
+    a_2_comp_ = []  # Area after inflection point
+    diff_a_comp_ = []  # Difference between areas
 
-    for m in np.linspace(0, 2, 100):  # [0, 1, 2]:
-        # Data points of the line
-        y_lin_comp = m*x_comp + \
-            (spline_y_filtered_comp(root_comp) - m*root_comp)
-        y_lin_exp = m*x_exp + (spline_y_filtered_exp(root_exp) - m*root_exp)
+    a_1_exp_ = []  # Area before inflection point
+    a_2_exp_ = []  # Area after inflection point
+    diff_a_exp_ = []  # Difference between areas
 
-        # Find intercept of line and splines of comp and exp data
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    m_ = []  # Slope of the curve
 
-        fig1 = plt.figure(1)
-        ax1_1 = fig1.add_subplot(1, 1, 1)
+    m = 1
 
-        ax1_1.errorbar(x_comp, y_comp, yerr=std_comp,
-                       linewidth=0.5, label='Original Data COMPRESSION')
-        ax1_1.errorbar(x_exp, y_exp, yerr=std_exp, linewidth=0.5,
-                       label='Original Data EXPANSION')
-        ax1_1.plot(x_comp, y_filtered_comp,
-                   label='Filtered COMPRESSION', linewidth=0.5)
-        ax1_1.plot(x_exp, y_filtered_exp,
-                   label='Filtered EXPANSION', linewidth=0.5)
-        ax1_1.plot(x, py, label='Fit', linewidth=0.5)
-        ax1_1.plot(x_infl, p(x_infl), 'o', label='Inflection')
-        # ax1_1.plot(x[:int(len(x)/2)], dfFFT.real, '--', label="FFT Derivative")
-        #ax1_1.plot(x_comp, df_df_comp, '--', label='CD Derivative COMPRESSION')
-        #ax1_1.plot(x_exp, df_df_exp, '--', label='CD Derivative EXPANSION')
-        ax1_1.plot(root_comp, spline_y_filtered_comp(
-            root_comp), 'o', label='Newton COMPRESSION')
-        ax1_1.plot(root_exp, spline_y_filtered_exp(
-            root_exp), 'o', label='Newton EXPANSION')
-        ax1_1.plot(x_comp, y_lin_comp, label='COMP', linewidth=0.5)
-        ax1_1.plot(x_exp, y_lin_exp, label='EXP', linewidth=0.5)
+    # Data points of the line
+    y_lin_comp = m*x_comp + \
+        (spline_y_filtered_comp(root_comp) - m*root_comp)
+    y_lin_exp = m*x_exp + (spline_y_filtered_exp(root_exp) - m*root_exp)
 
-        ax1_1.set_ylabel('Pressure / -')
-        ax1_1.set_xlabel('$\phi$ / -')
-        ax1_1.legend()
-        fig1.tight_layout()
+    # Difference of line and splines of comp and exp data
+    diff_spline_y_comp = y_lin_comp - spline_y_filtered_comp(x_comp)
 
-        plt.show()
-        '''
-        
+    diff_spline_y_exp = y_lin_exp - spline_y_filtered_exp(x_exp)
 
-        intercept
+    # Interpolation function used to find zeros diff_spline_y
+    spline_diff_spline_y_comp = interp1d(x_comp, diff_spline_y_comp, kind='cubic')
+    spline_diff_spline_y_exp = interp1d(x_exp, diff_spline_y_exp, kind='cubic')
+    
+    # First intercept of line and splines of comp and exp data
+    if np.sign(spline_diff_spline_y_comp(root_comp*0.999)) == np.sign(spline_diff_spline_y_comp(x_comp[0])):
+        x_1_comp = root_comp
+    else:
+        #x_1_comp = optimize.newton(spline_diff_spline_y_comp, x_comp[0] + (root_comp-x_comp[0])/2)
+        x_1_comp = optimize.brentq(spline_diff_spline_y_comp, x_comp[0], root_comp*0.999)
 
-        # Append values to lists
-        a_1.append(p_a_1(x_inter[1]) - p_a_1(x_inter[0]))
-        a_2.append(p_a_2(x_inter[2]) - p_a_2(x_inter[1]))
-        diff_a.append(a_1[-1] - a_2[-1])
-        m_.append(m)
-        '''
+    if np.sign(spline_diff_spline_y_exp(root_exp*0.999)) == np.sign(spline_diff_spline_y_exp(x_exp[-1])):
+        x_1_exp = root_exp
+    else:
+        #x_1_exp = optimize.newton(spline_diff_spline_y_exp, x_exp[-1] + (root_exp-x_exp[-1])/2)
+        x_1_exp = optimize.brentq(spline_diff_spline_y_exp, x_exp[-1], root_exp*0.999)
 
-    '''
-    # Area differences
-    a_1 = []
-    a_2 = []
-    m_ = []
-    diff_a = []
+    # Second intercept of line and splines of comp and exp data
+    if np.sign(spline_diff_spline_y_comp(root_comp*1.001)) == np.sign(spline_diff_spline_y_comp(x_comp[-1])):
+        x_2_comp = root_comp
+    else:
+        #x_2_comp = optimize.newton(spline_diff_spline_y_comp, x_comp[-1] - (x_comp[-1]-root_comp)/2)
+        x_2_comp = optimize.brentq(spline_diff_spline_y_comp, root_comp*1.001, x_comp[-1])
 
-    # # Find intercepts
-    for m in np.linspace(0, 2, 100):  # [0, 1, 2]:
-        # Coefficients of the polynomial of the intercepts
-        coeff_inter = [z[0], z[1], z[2]-m, z[3] - (p(x_infl)-m*x_infl)]
+    if np.sign(spline_diff_spline_y_exp(root_exp*1.001)) == np.sign(spline_diff_spline_y_exp(x_exp[0])):
+        x_2_exp = root_exp
+    else:
+        #x_2_exp = optimize.newton(spline_diff_spline_y_exp, x_exp[0] - (x_exp[0]-root_exp)/2)
+        x_2_exp = optimize.brentq(spline_diff_spline_y_exp, root_exp*1.001, x_exp[0])
 
-        # Equation of the intercepts
-        p_inter = np.poly1d(coeff_inter)
+    # Area in [x1,root] => line - spline
+    ind_comp = np.where( (x_comp >= x_1_comp) & (x_comp <= root_comp) )
+    ind_exp = np.where( (x_exp >= x_1_exp) & (x_exp <= root_exp) )
 
-        # Intercepts [x1,xp,x2]
-        x_inter = p_inter.r
+    a_1_comp = np.trapz(spline_y_filtered_comp(x_comp[ind_comp]), x_comp[ind_comp]) - np.trapz(y_lin_comp[ind_comp],x_comp[ind_comp])
+    a_1_exp = np.trapz(spline_y_filtered_exp(np.flip(x_exp[ind_exp])), np.flip(x_exp[ind_exp])) - np.trapz(np.flip(y_lin_exp[ind_exp]),np.flip(x_exp[ind_exp]))
 
-        # First section area
-        coeff_a_1 = [1/4*z[0], 1/3*z[1], 1/2 *
-                     (z[2]-m), (z[3] - (p(x_infl)-m*x_infl)), 0]
-        p_a_1 = np.poly1d(coeff_a_1)
+    #print('a_1_comp={}\na_1_exp={}'.format(a_1_comp,a_1_exp))
 
-        # Second section area
-        coeff_a_2 = [-1/4*z[0], -1/3*z[1], -1/2 *
-                     (z[2]-m), -(z[3] - (p(x_infl)-m*x_infl)), 0]
-        p_a_2 = np.poly1d(coeff_a_2)
+    # Area in [root,x2] => spline - line
+    ind_comp = np.where( (x_comp <= x_2_comp) & (x_comp >= root_comp) )
+    ind_exp = np.where( (x_exp <= x_2_exp) & (x_exp >= root_exp) )
+    #print(root_exp)
+    #print(x_2_exp)
+    #print(x_exp[ind_exp])
 
-        # Append values to lists
-        a_1.append(p_a_1(x_inter[1]) - p_a_1(x_inter[0]))
-        a_2.append(p_a_2(x_inter[2]) - p_a_2(x_inter[1]))
-        print('Intercept='+str(x_inter))
-        print('a_1={}       a_2={}'.format(a_1[-1], a_2[-1]))
-        diff_a.append(a_1[-1] - a_2[-1])
-        m_.append(m)
-        '''
+    a_2_comp = -np.trapz(spline_y_filtered_comp(x_comp[ind_comp]), x_comp[ind_comp]) + np.trapz(y_lin_comp[ind_comp],x_comp[ind_comp])
+    a_2_exp = -np.trapz(spline_y_filtered_exp(np.flip(x_exp[ind_exp])), np.flip(x_exp[ind_exp])) + np.trapz(np.flip(y_lin_exp[ind_exp]),np.flip(x_exp[ind_exp]))
 
-    '''
+    # Append values to lists
+    a_1_comp_.append(a_1_comp)
+    a_2_comp_.append(a_2_comp)
+    diff_a_comp_.append(a_1_comp - a_2_comp)
 
-        # Plot intercepts
-        print(x_inter)
-        x_lin = np.poly1d([m, p(x_infl)-m*x_infl])
+    a_1_exp_.append(a_1_exp)
+    a_2_exp_.append(a_2_exp)
+    diff_a_exp_.append(a_1_exp - a_2_exp)
 
-        fig1 = plt.figure(1)
-        ax1_1 = fig1.add_subplot(1, 1, 1)
+    m_.append(m)
 
-        ax1_1.errorbar(x, y, yerr=std, linewidth=0.5, label='Original Data')
-        ax1_1.plot(x, py, label='Fit', linewidth=0.5)
-        ax1_1.plot(x_infl, p(x_infl), 'o', label='Inflection')
+    #print('a_2_comp={}\na_2_exp={}'.format(a_2_comp,a_2_exp))
 
-        x_plot_inter = [x_inter[0], x_inter[2]]
-        ax1_1.plot(x_plot_inter, p(x_plot_inter), 'o', label='Intercepts')
-        ax1_1.plot(x, x_lin(x), label='m-{}'.format(m))
+    #print('x_1_comp={}\nroot_comp={}\nx_2_comp={}\nx_1_exp={}\nroot_exp={}\nx_2_exp{}'.format(x_1_comp,root_comp,x_2_comp,x_1_exp,root_exp,x_2_exp))
 
-        ax1_1.set_ylabel('Pressure / -')
-        ax1_1.set_xlabel('$\phi$ / -')
-        ax1_1.legend()
-        fig1.tight_layout()
 
-        plt.show()
-        '''
-    '''
-    # # Find start and end of co-existing phases
-    # diff_a = np.array(diff_a)
+    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n{}'.format(m))
+    fig3 = plt.figure(3)
+    ax3_1 = fig3.add_subplot(1,1,1)
+    ax3_1.plot(x_comp, diff_spline_y_comp, label='COMPRESSION')
+    ax3_1.plot(x_exp, diff_spline_y_exp, label='EXPANSION')
+    ax3_1.plot(x_1_comp, spline_diff_spline_y_comp(x_1_comp), 'o', x_2_comp, spline_diff_spline_y_comp(x_2_comp), 'o', label='Intercept COMPRESSION')
+    ax3_1.plot(x_1_exp, spline_diff_spline_y_exp(x_1_exp), 'o', x_2_exp, spline_diff_spline_y_exp(x_2_exp), 'o', label='Intercept EXPANSION')
+    
+    
+    ax3_1.set_ylabel('Diff Splice - YLine / -')
+    ax3_1.set_xlabel('$\phi$ / -')
+    ax3_1.legend()
+    fig3.tight_layout()
 
-    # Find where m yields diff=0
-    index_diff_0 = [count for count, value in enumerate(
-        diff_a) if value == 0 and value != 'numpy.complex128']
-
-    start_index = 0
-    co = 0
-    for count, value in enumerate(diff_a):
-        if type(value[0]) != complex:
-            print('!!!!!!!!!!!!!!!!!!!Value')
-            print(type(value[0]))
-            start_index = count
-            print('!!!!!!!!!!!!!!!start_index')
-            print(start_index)
-            break
-
-        co += 1
-
-    print("!!!!!!!!!!!!!!!!!co={}".format(co))
-
-    a_1 = a_1[start_index:]
-    a_2 = a_2[start_index:]
-    m_ = m_[start_index:]
-    diff_a = diff_a[start_index:]
-
-    print('!!!!!!!!!!!!!!!!!!!!!a_1')
-    print(a_1)
-    print('!!!!!!!!!!!!!!!!!!!!!a_2')
-    print(a_2)
-    print('!!!!!!!!!!!!!!!!!!!!!m_')
-    print(m_)
-    print('!!!!!!!!!!!!!!!!!!!!!diff_a')
-    print(diff_a)
-
-    # Find where m yields diff=0
-    index_diff_0 = [count for count, value in enumerate(
-        diff_a) if value == 0 and value != complex]
-
-    fig2 = plt.figure(2)
-    ax2_1 = fig2.add_subplot(1, 1, 1)
-    ax2_1.plot(m_, a_1, label='a_1', linewidth=0.5)
-    ax2_1.plot(m_, a_2, label='a_2', linewidth=0.5)
-    ax2_1.plot(m_, diff_a, label='diff', linewidth=0.5)
-    ax2_1.plot(m_[index_diff_0[0]], diff_a[index_diff_0[0]],
-               'o', label='First diff=0', linewidth=0.5)
-    ax2_1.set_ylabel('m / -')
-    ax2_1.set_xlabel('Area / -')
-    ax2_1.legend()
-
-    fig2.tight_layout()
     plt.show()
-    '''
-'''
-    ax1_1.errorbar(x, y, yerr=std, linewidth=0.5, label='Original Data')
+
+
+    fig1 = plt.figure(1)
+    ax1_1 = fig1.add_subplot(1, 1, 1)
+
+    ax1_1.errorbar(x_comp, y_comp, yerr=std_comp,
+                linewidth=0.5, label='Original Data COMPRESSION')
+    ax1_1.errorbar(x_exp, y_exp, yerr=std_exp, linewidth=0.5,
+                label='Original Data EXPANSION')
+    ax1_1.plot(x_comp, y_filtered_comp,
+            label='Filtered COMPRESSION', linewidth=0.5)
+    ax1_1.plot(x_exp, y_filtered_exp,
+            label='Filtered EXPANSION', linewidth=0.5)
     ax1_1.plot(x, py, label='Fit', linewidth=0.5)
     ax1_1.plot(x_infl, p(x_infl), 'o', label='Inflection')
-
-    print('!!!!!m_' + str(m_))
-    x_lin = np.poly1d([m_[index_diff_0[0]], p(
-        x_infl)-m_[index_diff_0[0]]*x_infl])
-    print(x_lin(x))
-    ax1_1.plot(x, x_lin(x), label='m-{}'.format(m_[index_diff_0[0]]))
+    # ax1_1.plot(x[:int(len(x)/2)], dfFFT.real, '--', label="FFT Derivative")
+    #ax1_1.plot(x_comp, df_df_comp, '--', label='CD Derivative COMPRESSION')
+    #ax1_1.plot(x_exp, df_df_exp, '--', label='CD Derivative EXPANSION')
+    ax1_1.plot(root_comp, spline_y_filtered_comp(
+        root_comp), 'o', label='Inflection Newton COMPRESSION')
+    ax1_1.plot(root_exp, spline_y_filtered_exp(
+        root_exp), 'o', label='Inflection Newton EXPANSION')
+    ax1_1.plot(x_comp, y_lin_comp, label='COMP', linewidth=0.5)
+    ax1_1.plot(x_exp, y_lin_exp, label='EXP', linewidth=0.5)
+    ax1_1.plot(x_1_comp, spline_y_filtered_comp(x_1_comp), 'o', x_2_comp, spline_y_filtered_comp(x_2_comp), 'o', label='Intercept COMPRESSION')
+    ax1_1.plot(x_1_exp, spline_y_filtered_exp(x_1_exp), 'o', x_2_exp, spline_y_filtered_exp(x_2_exp), 'o', label='Intercept EXPANSION')
 
     ax1_1.set_ylabel('Pressure / -')
     ax1_1.set_xlabel('$\phi$ / -')
@@ -337,4 +284,33 @@ for d in args.in_file:
     fig1.tight_layout()
 
     plt.show()
-'''
+            
+        
+    
+    
+    
+    # Find where m yields diff=0
+    
+    fig2 = plt.figure(2)
+    ax2_1 = fig2.add_subplot(1, 1, 1)
+    ax2_1.plot(m_, diff_a_comp_, label='diff_a_comp', linewidth=0.5)
+    ax2_1.plot(m_, diff_a_exp_, label='diff_a_exp', linewidth=0.5)
+    ax2_1.set_ylabel('DIFF AREA / -')
+    ax2_1.set_xlabel('m / -')
+    ax2_1.legend()
+
+    fig2.tight_layout()
+    plt.show()
+
+    fig4 = plt.figure(4)
+    ax4_1 = fig4.add_subplot(1, 1, 1)
+    ax4_1.plot(m_, a_1_comp_, label='a_1_comp', linewidth=0.5)
+    ax4_1.plot(m_, a_2_comp_, label='a_2_comp', linewidth=0.5)
+    ax4_1.plot(m_, a_1_exp_, label='a_1_exp', linewidth=0.5)
+    ax4_1.plot(m_, a_2_exp_, label='a_2_exp', linewidth=0.5)
+    ax4_1.set_ylabel('DIFF AREA / -')
+    ax4_1.set_xlabel('m / -')
+    ax4_1.legend()
+
+    fig4.tight_layout()
+    plt.show()
