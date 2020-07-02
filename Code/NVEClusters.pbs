@@ -4,7 +4,7 @@
 
 #PBS -l nodes=1:ppn=4,walltime=18:00:00
 #PBS -N rigidClustersReducedVFRANGE
-#PBS -t 10,11,12,13,14,15,16,17,18
+#PBS -t 15,16,17,18
 
 
 # Load required modules (compiler, ...)

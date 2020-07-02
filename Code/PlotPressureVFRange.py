@@ -118,12 +118,12 @@ for d in args.in_file:
     error = np.array([error]).T
 
     # Plot compresion
-    ax5_1.errorbar(
-        data_ave[i_d:e_d, 0], data_ave[i_d:e_d, 1], yerr=error[i_d:e_d, 0], label=label+'_compr', linewidth=0.5)
+    ax5_1.errorbar(data_ave[i_d:e_d, 0], data_ave[i_d:e_d, 1],
+                   yerr=error[i_d:e_d, 0], label=label+'_compr', linewidth=0.5)
 
     # Plot expansion
-    ax5_1.errorbar(
-        data_ave[i_d_r:e_d_r, 0], data_ave[i_d_r:e_d_r, 1], yerr=error[i_d_r:e_d_r, 0], label=label+'_exp', linewidth=0.5)
+    ax5_1.errorbar(data_ave[i_d_r:e_d_r, 0], data_ave[i_d_r:e_d_r, 1],
+                   yerr=error[i_d_r:e_d_r, 0], label=label+'_exp', linewidth=0.5)
 
     print('!!!!!!!!!!!PRESSURE!!!!!!!!!!!\n' +
           str(d + '\n' + str(data_ave.shape)))
