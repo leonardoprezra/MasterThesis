@@ -1,10 +1,12 @@
 '''
 Finds Pressure of first order phase transformation.
 
-
+Saves data in .npy file
+[Nclus, Mean_Pressure, Mean_VF , Start_P, Start_VF, End_P, End_VF, Window_size]
 '''
 
 from matplotlib import pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import os
 import math
@@ -14,6 +16,7 @@ import scipy.signal
 from scipy.interpolate import interp1d
 from scipy import optimize
 
+
 # Command line argument parsing
 parser = argparse.ArgumentParser(
     description='Finds Pressure of first order phase transformation.')
@@ -22,55 +25,24 @@ parser.add_argument('-f', '--in-file', type=str, nargs='+',
 
 args = parser.parse_args()
 
-# Central difference
+# Data fitting parameters
+window_size = 67
 
-
-def cent_diff(x, y):
-    # Forward difference for the first element of the compression
-    dfCD = [(y[1]-y[0])/(x[1]-x[0])]
-    print('size df={}'.format(len(dfCD)))
-
-    # Central difference for elements on the compression
-    for i in range(1, int(len(x))-1):
-        dfCD.append((y[i+1]-y[i-1]) / (x[i+1]-x[i-1]))
-
-    print('size df={}'.format(len(dfCD)))
-    # Backward difference for the last element of the compression
-    dfCD.append((y[int(len(x))-1]-y[int(len(x))-2]) /
-                (x[int(len(x))-1]-x[int(len(x))-2]))
-
-    print('size df={}'.format(len(dfCD)))
-    '''
-    # Forward difference for the first element of the expansion
-    dfCD.append((y[int(len(x)/2)+1]-y[int(len(x)/2)]) /
-                (x[int(len(x)/2)+1]-x[int(len(x)/2)]))
-
-    print('size df={}'.format(len(dfCD)))
-    # Central difference for elements on the expansion
-    for i in range(int(len(x)/2)+1, int(len(x))-1):
-        dfCD.append((y[i+1]-y[i-1]) / (x[i+1]-x[i-1]))
-
-    print('size df={}'.format(len(dfCD)))
-    # Backward difference for the last element of the expansion
-    dfCD.append((y[int(len(x))-1]-y[int(len(x))-2]) /
-                (x[int(len(x))-1]-x[int(len(x))-2]))
-
-    print('size df={}'.format(len(dfCD)))
-    '''
-
-    return dfCD
-
-
+# Array to store phase transition data from different files
 plotting_data = np.empty((0, 7))
 
 # Loops over given files
 for d in args.in_file:
+    print('Working on:')
     print(d)
-    # Read data and store in array
+    print('')
+
+    # Read data
     data = np.load(d)
     x = data[:, 0]
     y = data[:, 1]
     std = data[:, 2]
+    Nclus = int(d.split('_')[5].split('-')[1])
 
     # Divide data in compression and expansion runs
     x_comp = x[: int(len(x)/2)]
@@ -94,26 +66,99 @@ for d in args.in_file:
     # Find inflection point of polynonmial fit
     p_prime_prime = np.poly1d([6*z[0], 2*z[1]])
     x_infl = p_prime_prime.r  # -2*z[1]/(6*z[0])
-    print('x_infl')
-    print(x_infl)
 
-    # # Find inflection point using Central Differences
+    # #
+    # #
+    # #
+    # # Find inflection point using Central Differences and Newton-Rapson method
     # Filter data using Savitzky–Golay filter
     y_filtered_comp = scipy.signal.savgol_filter(
-        y_comp, 27, 3, delta=x[1]-x[0])  # window size 10, polynomial order 3
+        y_comp, window_size, 3, delta=x[1]-x[0])  # window size 10, polynomial order 3
 
     y_filtered_exp = scipy.signal.savgol_filter(
-        y_exp, 27, 3, delta=x[1]-x[0])  # window size 10, polynomial order 3
+        y_exp, window_size, 3, delta=x[1]-x[0])  # window size 10, polynomial order 3
 
     # Interpolate using spline on filtered data
     spline_y_filtered_comp = interp1d(x_comp, y_filtered_comp, kind='cubic')
     spline_y_filtered_exp = interp1d(x_exp, y_filtered_exp, kind='cubic')
 
     # First derivative of filtered signal
-    df_comp = cent_diff(x_comp, y_filtered_comp)
-    df_exp = cent_diff(x_exp, y_filtered_exp)
+    df_comp = np.gradient(y_filtered_comp, x_comp)
+    df_exp = np.gradient(y_filtered_exp, x_exp)
 
-    fig9 = plt.figure(10)
+    spline_df_comp = interp1d(x_comp, df_comp, kind='cubic')
+    spline_df_exp = interp1d(x_exp, df_exp, kind='cubic')
+
+    # Second derivative of filtered signal
+    df_df_comp = np.gradient(df_comp, x_comp)
+    df_df_exp = np.gradient(df_exp, x_exp)
+
+    spline_df_df_comp = interp1d(x_comp, df_df_comp, kind='cubic')
+    spline_df_df_exp = interp1d(x_exp, df_df_exp, kind='cubic')
+
+    # Third derivative of filtered signal
+    df_df_df_comp = np.gradient(df_df_comp, x_comp)
+    df_df_df_exp = np.gradient(df_df_exp, x_exp)
+
+    spline_df_df_df_comp = interp1d(x_comp, df_df_df_comp, kind='cubic')
+    spline_df_df_df_exp = interp1d(x_exp, df_df_df_exp, kind='cubic')
+
+    # Find inflection point
+    root_comp = optimize.newton(
+        spline_df_df_comp, x_infl, fprime=spline_df_df_df_comp)
+    root_exp = optimize.newton(
+        spline_df_df_exp, x_infl, fprime=spline_df_df_df_exp)
+
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+
+    # Find start and end of phase transformation
+    def start_phase_change(x_data, y_data):
+        phase_change = x_data[0]
+
+        for i in range(len(x_data)):
+            bef_grad = np.mean(y_data[i:i+10])
+            aft_grad = np.mean(y_data[i+10:i+20])
+            porc_diff = abs(aft_grad - bef_grad) / bef_grad
+
+            if porc_diff > 0.3:
+                phase_change = x_data[i]
+                break
+
+        return phase_change
+
+    def end_phase_change(x_data, y_data):
+        phase_change = x_data[-1]
+
+        for i in range(len(x_data), 0, -1):
+            bef_grad = np.mean(y_data[i-10:i])
+            aft_grad = np.mean(y_data[i-20:i-10])
+            porc_diff = abs(aft_grad - bef_grad) / bef_grad
+
+            if porc_diff > 0.3:
+                phase_change = x_data[i-1]
+                break
+
+        return phase_change
+
+    x_start_comp = start_phase_change(x_comp, df_comp)
+    x_start_exp = end_phase_change(x_exp, df_exp)
+    x_end_comp = end_phase_change(x_comp, df_comp)
+    x_end_exp = start_phase_change(x_exp, df_exp)
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+
+    fig9 = plt.figure(2)
     ax9_1 = fig9.add_subplot(1, 1, 1)
     ax9_1.set_title(
         'Nclus-{}\nFIRST DERIVATIVE'.format(int(d.split('_')[5].split('-')[1])))
@@ -121,31 +166,12 @@ for d in args.in_file:
                '--', label='CD Derivative COMPRESSION')
     ax9_1.plot(x_exp, df_exp, '--',
                label='CD Derivative EXPANSION')
+    ax9_1.plot(x_start_comp, spline_comp(x_start_comp), 'x', x_end_comp,
+               spline_comp(x_end_comp), 'x', label='Phase Transition COMPRESSION')
+    ax9_1.plot(x_start_exp, spline_exp(x_start_exp), 'x', x_end_exp,
+               spline_exp(x_end_exp), 'x', label='Phase Transition EXPANSION')
     ax9_1.legend()
-    plt.show()
-
-    # Second derivative of filtered signal
-    df_df_comp = cent_diff(x_comp, df_comp)
-    df_df_exp = cent_diff(x_exp, df_exp)
-
-    # Spline interpolation of second derivative
-    spline_df_df_comp = interp1d(x_comp, df_df_comp, kind='cubic')
-    spline_df_df_exp = interp1d(x_exp, df_df_exp, kind='cubic')
-
-    fig9 = plt.figure(9)
-    ax9_1 = fig9.add_subplot(1, 1, 1)
-    ax9_1.set_title(
-        'Nclus-{}\nSECOND DERIVATIVE'.format(int(d.split('_')[5].split('-')[1])))
-    ax9_1.plot(x_comp, df_df_comp,
-               '--', label='CD Derivative COMPRESSION')
-    ax9_1.plot(x_exp, df_df_exp, '--',
-               label='CD Derivative EXPANSION')
-    ax9_1.legend()
-    plt.show()
-
-    # Find inflection point using Newton-Rapson method
-    root_comp = optimize.newton(spline_df_df_comp, x_infl)
-    root_exp = optimize.newton(spline_df_df_exp, x_infl)
+    # plt.show()
 
     # # Find area between splines and a line that crosses respective inflection point
     a_1_comp_ = []  # Area before inflection point
@@ -259,10 +285,10 @@ for d in args.in_file:
     ax3_1.legend()
     fig3.tight_layout()
 
-    plt.show()
+    # plt.show()
 
     # # Plot Pressure - VF
-    fig1 = plt.figure(1)
+    fig1 = plt.figure(4)
     ax1_1 = fig1.add_subplot(1, 1, 1)
     ax1_1.set_title('Nclus-{}'.format(int(d.split('_')[5].split('-')[1])))
 
@@ -291,17 +317,31 @@ for d in args.in_file:
                spline_y_filtered_comp(x_2_comp), 'o', label='Intercept COMPRESSION')
     ax1_1.plot(x_1_exp, spline_y_filtered_exp(x_1_exp), 'o', x_2_exp,
                spline_y_filtered_exp(x_2_exp), 'o', label='Intercept EXPANSION')
+    ax1_1.plot(x_start_comp, spline_y_filtered_comp(x_start_comp), 'x', x_end_comp,
+               spline_y_filtered_comp(x_end_comp), 'x', label='Phase Transition COMPRESSION')
+    ax1_1.plot(x_start_exp, spline_y_filtered_exp(x_start_exp), 'x', x_end_exp,
+               spline_y_filtered_exp(x_end_exp), 'x', label='Phase Transition EXPANSION')
 
     ax1_1.set_ylabel('Pressure / -')
     ax1_1.set_xlabel('$\phi$ / -')
     ax1_1.legend()
     fig1.tight_layout()
 
-    plt.show()
+    # plt.show()
 
-    # save_data = [Nclus, Mean_Pressure, Mean_VF , Start_P, Start_VF, End_P, End_VF]
-    Nclus = int(d.split('_')[5].split('-')[1])
+    # Plot second derivative
+    fig9 = plt.figure(1)
+    ax9_1 = fig9.add_subplot(1, 1, 1)
+    ax9_1.set_title(
+        'Nclus-{}\nSECOND DERIVATIVE'.format(int(d.split('_')[5].split('-')[1])))
+    ax9_1.plot(x_comp, df_df_comp,
+               '--', label='CD Derivative COMPRESSION')
+    ax9_1.plot(x_exp, df_df_exp, '--',
+               label='CD Derivative EXPANSION')
+    ax9_1.legend()
+    # plt.show()
 
+    # save_data = [Nclus, Mean_Pressure, Mean_VF , Start_P, Start_VF, End_P, End_VF, Window_size]
     mean_P = (spline_y_filtered_comp(root_comp) +
               spline_y_filtered_exp(root_exp)) / 2
     mean_P = float(mean_P)
@@ -309,20 +349,27 @@ for d in args.in_file:
     mean_VF = (root_comp + root_exp) / 2
     mean_VF = float(mean_VF)
 
-    start_P = (spline_y_filtered_comp(x_1_comp) +
-               spline_y_filtered_exp(x_1_exp)) / 2
+    start_P = (spline_y_filtered_comp(x_start_comp) +
+               spline_y_filtered_exp(x_start_exp)) / 2
 
-    start_VF = (x_1_comp + x_1_exp) / 2
+    start_VF = (x_start_comp + x_start_exp) / 2
 
-    end_P = (spline_y_filtered_comp(x_2_comp) +
-             spline_y_filtered_exp(x_2_exp)) / 2
+    end_P = (spline_y_filtered_comp(x_end_comp) +
+             spline_y_filtered_exp(x_end_exp)) / 2
 
-    end_VF = (x_2_comp + x_2_exp) / 2
+    end_VF = (x_end_comp + x_end_exp) / 2
 
     save_data = np.array(
-        [[Nclus, mean_P, mean_VF, start_P, start_VF, end_P, end_VF]])
+        [[Nclus, mean_P, mean_VF, start_P, start_VF, end_P, end_VF, window_size]])
 
     plotting_data = np.concatenate((plotting_data, save_data), axis=0)
+
+
+# Create File to save figures
+with PdfPages("Figures.pdf") as pdf:
+    for i in range(1, 5):
+        pdf.savefig(figure=i)
+
 
 print('plotting_data')
 print(plotting_data)
