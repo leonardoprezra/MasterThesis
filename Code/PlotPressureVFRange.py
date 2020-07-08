@@ -88,6 +88,9 @@ for d in args.in_file:
     # Read data
     data = np.genfromtxt(fname=in_file, skip_header=True)
 
+    # #
+    # #
+    # #
     # # Plot Pressure-VF
     fig5 = plt.figure(5)
     ax5_1 = fig5.add_subplot(1, 1, 1)
@@ -157,6 +160,9 @@ for d in args.in_file:
     # Saves data in .npy file
     np.save(dir_name + d[:-4] + '_Pressure.npy', save_data)
 
+    # #
+    # #
+    # #
     # # Plot Energy-VF
     fig1 = plt.figure(1)
     ax1_1 = fig1.add_subplot(1, 1, 1)
@@ -174,11 +180,11 @@ for d in args.in_file:
     error = np.array([error]).T
 
     # Plot compresion
-    ax5_1.errorbar(
+    ax1_1.errorbar(
         data_ave[i_d:e_d, 0], data_ave[i_d:e_d, 1], yerr=error[i_d:e_d, 0], label=label+'_compr', linewidth=0.5)
 
     # Plot expansion
-    ax5_1.errorbar(
+    ax1_1.errorbar(
         data_ave[i_d_r:e_d_r, 0], data_ave[i_d_r:e_d_r, 1], yerr=error[i_d_r:e_d_r, 0], label=label+'_exp', linewidth=0.5)
 
     print('!!!!!!!!!!!!ENERGY!!!!!!!!!!!!\n' +

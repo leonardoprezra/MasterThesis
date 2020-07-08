@@ -9,8 +9,8 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 10  # N**2 or N**3 are the number of PSCs
-settings['diameter'] = 1.0  # Diameter of halo particles
+settings['N'] = 15  # N**2 or N**3 are the number of PSCs
+settings['diameter'] = 10.0  # Outer diameter of cluster
 settings['poly'] = '2Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
@@ -87,81 +87,104 @@ def core_properties(d=0, poly=None, mass=0, N_spheres=0):
     else:
         coord, core_diam, sphere_diam = [0, 0, 0]
 
-    core_values = {
-        'octa_diam': d * (-1+math.sqrt(2)),
-        'octa_type': ['halo']*6,
-        'octa_coord': [(-d/math.sqrt(2), 0, 0), (d/math.sqrt(2), 0, 0),
-                       (0, -d/math.sqrt(2), 0), (0, d/math.sqrt(2), 0),
-                       (0, 0, -d/math.sqrt(2)), (0, 0, d/math.sqrt(2))],
-        'octa_mass': mass*6,
-        'octa_N': 6,
-        'octa_sphere_diam': math.sqrt(2)*d + d,
 
-        'tetra_diam': d * math.sqrt(3/8) * (1-1/2),
-        'tetra_type': ['halo']*4,
-        'tetra_coord': [[d*math.sqrt(3/8) * i for i in (math.sqrt(8/9), 0, -1/3)], [d*math.sqrt(3/8)*i for i in (-math.sqrt(2/9), math.sqrt(2/3), -1/3)],
-                        [d*math.sqrt(3/8)*i for i in (-math.sqrt(2/9), -math.sqrt(2/3), -1/3)], [d*math.sqrt(3/8)*i for i in (0, 0, 1)]],
-        'tetra_mass': mass*4,
-        'tetra_N': 4,
-        'tetra_sphere_diam': math.sqrt(3/2)*d + d,
+    # Makes every cluster with sphere_diam = 1
+    if poly.split('_')[0] == '2Dspheres':
+        const = 1/math.sin(theta_2d)*math.sin(math.pi/2 - theta_2d/2)
+        radius_2d = d*const/(1+2*const)
+        d = d - 2*radius_2d
+        core_values = {
+            '2Dspheres_type': ['halo']*N_spheres,
+            '2Dspheres_coord': [(radius_2d*math.cos(theta_2d*i), radius_2d*math.sin(theta_2d*i), 0) for i in range(N_spheres)],
+            '2Dspheres_mass': mass*N_spheres,
+            '2Dspheres_N': N_spheres,
+            '2Dspheres_diam': (radius_2d-d/2)*2,
+            '2Dspheres_sphere_diam': radius_2d*2+d,
+            '2Dspheres_halo_diam': d
+        }
+    else :
+        core_values = {
+            'octa_diam': d * (-1+math.sqrt(2)),
+            'octa_type': ['halo']*6,
+            'octa_coord': [(-d/math.sqrt(2), 0, 0), (d/math.sqrt(2), 0, 0),
+                        (0, -d/math.sqrt(2), 0), (0, d/math.sqrt(2), 0),
+                        (0, 0, -d/math.sqrt(2)), (0, 0, d/math.sqrt(2))],
+            'octa_mass': mass*6,
+            'octa_N': 6,
+            'octa_sphere_diam': math.sqrt(2)*d + d,
+            'octa_halo_diam': d,
 
-        'cube_diam':  d*(math.sqrt(3)-1),
-        'cube_type': ['halo']*8,
-        'cube_coord': [(d/2, d/2, d/2), (-d/2, -d/2, -d/2),
-                       (d/2, -d/2, d/2), (-d/2, d/2, -d/2),
-                       (d/2, d/2, -d/2), (-d/2, -d/2, d/2),
-                       (-d/2, d/2, d/2), (d/2, -d/2, -d/2)],
-        'cube_mass': mass*8,
-        'cube_N': 8,
-        'cube_sphere_diam': d*(math.sqrt(3)+1),
+            'tetra_diam': d * math.sqrt(3/8) * (1-1/2),
+            'tetra_type': ['halo']*4,
+            'tetra_coord': [[d*math.sqrt(3/8) * i for i in (math.sqrt(8/9), 0, -1/3)], [d*math.sqrt(3/8)*i for i in (-math.sqrt(2/9), math.sqrt(2/3), -1/3)],
+                            [d*math.sqrt(3/8)*i for i in (-math.sqrt(2/9), -math.sqrt(2/3), -1/3)], [d*math.sqrt(3/8)*i for i in (0, 0, 1)]],
+            'tetra_mass': mass*4,
+            'tetra_N': 4,
+            'tetra_sphere_diam': math.sqrt(3/2)*d + d,
+            'tetra_halo_diam': d,
 
-        'ico_diam': (math.sqrt(g_r+2)*d/2-d/2)*2,
-        'ico_type': ['halo']*12,
-        'ico_coord': [(0, d/2, d/2*g_r), (0, -d/2, -d/2*g_r),
-                      (0, d/2, -d/2 * g_r), (0, -d/2, d/2*g_r),
-                      (d/2*g_r, 0, d/2), (-d/2*g_r, 0, -d/2),
-                      (d/2*g_r, 0, -d/2), (-d/2*g_r, 0, d/2),
-                      (d/2, d/2*g_r, 0), (-d/2, -d/2*g_r, 0),
-                      (d/2, -d/2*g_r, 0), (-d/2, d/2*g_r, 0)],
-        'ico_mass': mass*12,
-        'ico_N': 12,
-        'ico_sphere_diam': (math.sqrt(g_r+2)*d/2+d/2)*2,
+            'cube_diam':  d*(math.sqrt(3)-1),
+            'cube_type': ['halo']*8,
+            'cube_coord': [(d/2, d/2, d/2), (-d/2, -d/2, -d/2),
+                        (d/2, -d/2, d/2), (-d/2, d/2, -d/2),
+                        (d/2, d/2, -d/2), (-d/2, -d/2, d/2),
+                        (-d/2, d/2, d/2), (d/2, -d/2, -d/2)],
+            'cube_mass': mass*8,
+            'cube_N': 8,
+            'cube_sphere_diam': d*(math.sqrt(3)+1),
+            'cube_halo_diam': d,
 
-        'dode_diam': (math.sqrt(3)*d*g_r/2-d/2)*2,
-        'dode_type': ['halo']*20,
-        'dode_coord': [(i*d*g_r/2, j*d*g_r/2, k*d*g_r/2) for i in [1, -1] for j in [1, -1] for k in [1, -1]]
-        + [(0, i*d*g_r/2, j*d*g_r/2) for i in [g_r, -g_r]
-            for j in [1/g_r, -1/g_r]]
-        + [(j*d*g_r/2, 0, i*d*g_r/2) for i in [g_r, -g_r]
-            for j in [1/g_r, -1/g_r]]
-        + [(i*d*g_r/2, j*d*g_r/2, 0) for i in [g_r, -g_r]
-            for j in [1/g_r, -1/g_r]],
-        'dode_mass': mass*20,
-        'dode_N': 20,
-        'dode_sphere_diam': (math.sqrt(3)*d*g_r/2+d/2)*2,
+            'ico_diam': (math.sqrt(g_r+2)*d/2-d/2)*2,
+            'ico_type': ['halo']*12,
+            'ico_coord': [(0, d/2, d/2*g_r), (0, -d/2, -d/2*g_r),
+                        (0, d/2, -d/2 * g_r), (0, -d/2, d/2*g_r),
+                        (d/2*g_r, 0, d/2), (-d/2*g_r, 0, -d/2),
+                        (d/2*g_r, 0, -d/2), (-d/2*g_r, 0, d/2),
+                        (d/2, d/2*g_r, 0), (-d/2, -d/2*g_r, 0),
+                        (d/2, -d/2*g_r, 0), (-d/2, d/2*g_r, 0)],
+            'ico_mass': mass*12,
+            'ico_N': 12,
+            'ico_sphere_diam': (math.sqrt(g_r+2)*d/2+d/2)*2,
+            'ico_halo_diam': d,
 
-        '2Dspheres_type': ['halo']*N_spheres,
-        '2Dspheres_coord': [(radius_2d*math.cos(theta_2d*i), radius_2d*math.sin(theta_2d*i), 0) for i in range(N_spheres)],
-        '2Dspheres_mass': mass*N_spheres,
-        '2Dspheres_N': N_spheres,
-        '2Dspheres_diam': (radius_2d-d/2)*2,
-        '2Dspheres_sphere_diam': radius_2d*2+d,
+            'dode_diam': (math.sqrt(3)*d*g_r/2-d/2)*2,
+            'dode_type': ['halo']*20,
+            'dode_coord': [(i*d*g_r/2, j*d*g_r/2, k*d*g_r/2) for i in [1, -1] for j in [1, -1] for k in [1, -1]]
+            + [(0, i*d*g_r/2, j*d*g_r/2) for i in [g_r, -g_r]
+                for j in [1/g_r, -1/g_r]]
+            + [(j*d*g_r/2, 0, i*d*g_r/2) for i in [g_r, -g_r]
+                for j in [1/g_r, -1/g_r]]
+            + [(i*d*g_r/2, j*d*g_r/2, 0) for i in [g_r, -g_r]
+                for j in [1/g_r, -1/g_r]],
+            'dode_mass': mass*20,
+            'dode_N': 20,
+            'dode_sphere_diam': (math.sqrt(3)*d*g_r/2+d/2)*2,
+            'dode_halo_diam': d,
 
-        '3Dspheres_type': ['halo']*N_spheres,
-        '3Dspheres_coord': coord,
-        '3Dspheres_mass': mass*N_spheres,
-        '3Dspheres_N': N_spheres,
-        '3Dspheres_diam':  core_diam,
-        '3Dspheres_sphere_diam': sphere_diam,
+            '2Dspheres_type': ['halo']*N_spheres,
+            '2Dspheres_coord': [(radius_2d*math.cos(theta_2d*i), radius_2d*math.sin(theta_2d*i), 0) for i in range(N_spheres)],
+            '2Dspheres_mass': mass*N_spheres,
+            '2Dspheres_N': N_spheres,
+            '2Dspheres_diam': (radius_2d-d/2)*2,
+            '2Dspheres_sphere_diam': radius_2d*2+d,
+            '2Dspheres_halo_diam': d,
 
-        'one_type': ['core'],
-        'one_coord': [(0,0,0)],
-        'one_mass': mass,
-        'one_N': 1,
-        'one_diam':  d,
-        'one_sphere_diam': d,
+            '3Dspheres_type': ['halo']*N_spheres,
+            '3Dspheres_coord': coord,
+            '3Dspheres_mass': mass*N_spheres,
+            '3Dspheres_N': N_spheres,
+            '3Dspheres_diam':  core_diam,
+            '3Dspheres_sphere_diam': sphere_diam,
+            '3Dspheres_halo_diam': d,
 
-    }
+            'one_type': ['core'],
+            'one_coord': [(0,0,0)],
+            'one_mass': mass,
+            'one_N': 1,
+            'one_diam':  d,
+            'one_sphere_diam': d,
+            'one_halo_diam': d,
+        }
     try:
         return core_values[poly]
     except:
@@ -217,23 +240,23 @@ class PartCluster:
     '''
 
     def __init__(self, poly_key, N_cluster, halo_diam, halo_mass, ratio=1):
-        self.core_diam = core_properties(poly='{}_diam'.format(
-            poly_key), d=halo_diam, N_spheres=N_cluster) + halo_diam*(1-ratio) # Diameter of core particles
         self.core_type = core_properties(poly='{}_type'.format(
-            poly_key), N_spheres=N_cluster)  # List to create clusters
+            poly_key), d=halo_diam, N_spheres=N_cluster)  # List to create clusters
         self.core_coord = core_properties(poly='{}_coord'.format(
             poly_key), d=halo_diam, N_spheres=N_cluster)  # Coordinates of particles in cluster (global coordinates)
         self.core_mass = core_properties(poly='{}_mass'.format(
-            poly_key), mass=halo_mass, N_spheres=N_cluster)  # Mass of core particles
+            poly_key), mass=halo_mass, d=halo_diam, N_spheres=N_cluster)  # Mass of core particles
         self.N_cluster = core_properties(poly='{}_N'.format(
-            poly_key), N_spheres=N_cluster)  # Number of particles in cluster
-        self.halo_diam = halo_diam * ratio
+            poly_key), d=halo_diam, N_spheres=N_cluster)  # Number of particles in cluster
+        self.halo_diam = core_properties(poly='{}_halo_diam'.format(
+            poly_key), d=halo_diam, N_spheres=N_cluster) * ratio # Number of particles in cluster
+        self.core_diam = core_properties(poly='{}_diam'.format(
+            poly_key), d=halo_diam, N_spheres=N_cluster) + self.halo_diam*(1-ratio) # Diameter of core particles
         self.sphere_diam = self.core_diam + 2*self.halo_diam  # Diameter of sphere circunscribing PSC
         self.poly_key = poly_key
         self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
             particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
                                                        # Rotation matrix to rotate from global coordinates to principal axes coordinates
-        
         self.core_coord = quat_rotation(particles=self.core_coord, q=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
         self.halo_mass = halo_mass
 
