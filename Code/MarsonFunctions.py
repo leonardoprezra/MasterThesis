@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 15  # N**2 or N**3 are the number of PSCs
+settings['N'] = 4  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 10.0  # Outer diameter of cluster
 settings['poly'] = '2Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
@@ -506,6 +506,41 @@ def quat_rotation(particles, q):
         new_particles.append(tuple(rot_p.tolist()))
 
     return new_particles
+
+# Rotate points with rotation matrix
+def WCA_corrected(r, rmin, rmax, epsilon, sigma, offset, corr=1):
+    '''WCA potential corrected for offset of halo particles with regards to the center of the cluster.
+
+    Parameters
+    ----------
+    r : double
+        Positions relative to the center of the particle.
+    rmin : double
+        Below this distance potential is set to zero.
+    rmax : double
+        Above this distance potential is set to zero.
+    epsilon : double
+        WCA parameter.
+    sigma : double
+        WCA parameter.
+    offset : double
+        Distance from center of cluster to center of halo particle.
+    corr : double
+        Corrects for the increased interaction between particles.
+
+    Returns
+    -------
+    V : double
+        Potential evaluated at r.
+    F : double
+        Force evaluated at r.
+    '''
+
+    r = r + offset
+    V = (4 * epsilon * ((sigma / r)**12 - (sigma / r)**6) + epsilon) / corr
+    F = 4 * epsilon / r * (12 * (sigma / r)**12 - 6 * (sigma / r)**6) / corr
+    return (V, F)
+
 
 
 if __name__ == '__main__':

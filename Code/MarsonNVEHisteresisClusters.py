@@ -29,7 +29,7 @@ import hoomd
 import hoomd.md
 import random
 import math
-from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos
+from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos, WCA_corrected
 
 import os
 import sys
@@ -131,8 +131,32 @@ elif dimensions == 3:
 nl = hoomd.md.nlist.cell()
 
 # WCA is LJ with shift that causes potential to be zero a r_cut
-lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
+# lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
+r_cut = (2 ** (1/6)*sigma_u)
+offset = (cluster.halo_diam/2+cluster.core_diam/2)
+print('r_cut={}'.format(r_cut))
+print('offset={}'.format(offset))
+print('halo_diam={}'.format(cluster.halo_diam))
+print('visible_radius={}'.format(r_cut-offset))
+r_vis = r_cut-offset
 
+
+n_pos = math.pi / (2*math.asin(cluster.halo_diam / (2*r_vis)))
+
+print('n_pos={}'.format(n_pos))
+
+
+dict_coeff = dict(epsilon=epsilon_u, sigma=sigma_u,
+                  offset=offset, corr=int(n_pos)*N_cluster)
+
+table = hoomd.md.pair.table(width=100, nlist=nl)
+table.pair_coeff.set('halo', 'halo', func=WCA_corrected,
+                     rmin=0.1, rmax=r_cut, coeff=dict_coeff)
+table.pair_coeff.set(['halo', 'core'], 'core',
+                     func=WCA_corrected, rmin=0.1, rmax=0.2, coeff=dict_coeff)
+
+
+'''
 # Shifts interaction potential, so that its value is zero at the r_cut
 lj.set_params(mode='shift')
 lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
@@ -148,7 +172,7 @@ elif settings['ratio'] < 1 and settings['ratio'] > 0:
     sigma_halo_core = cluster.core_diam/2 + cluster.halo_diam/2
     lj.pair_coeff.set('halo', 'core', r_cut=2**(1/6) *
                       sigma_halo_core, epsilon=epsilon_u, sigma=sigma_halo_core)
-
+'''
 
 # # Equilibration
 # Integrator selection
@@ -181,9 +205,23 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                                     'rotational_kinetic_energy',
                                     'temperature',
                                     'pressure',
-                                    'pair_lj_energy'],
+                                    'pair_table_energy'],
+                        # 'pair_lj_energy'],
                         period=outputInterval_log,
                         overwrite=True)
+
+g = hoomd.group.all()
+
+logger = hoomd.analyze.log(filename='{:s}_special.log'.format(nameString),
+                           quantities=['pair_table_force',
+                                       'pair_table_energy_rigid'],
+                           period=outputInterval_log,
+                           overwrite=True)
+
+logger.register_callback(
+    'pair_table_energy_rigid', lambda timestep: table.get_energy(g))
+logger.register_callback(
+    'pair_table_force', lambda timestep: math.sqrt(sum(i*i for i in table.get_net_force(g))))
 
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      period=outputInterval_gsd,

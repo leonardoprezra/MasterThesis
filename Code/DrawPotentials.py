@@ -25,13 +25,15 @@ def WCA_corrected(r, rmin, rmax, epsilon, sigma, offset):
     return (V, F)
 
 
+# Adjust number of halo spheres
+N_spheres = 3
+
 # #
 # #
 # #
 # #
 # Cluster data non adjusted
 d = 10
-N_spheres = 5
 theta_2d = 2*math.pi/N_spheres
 radius_2d = d/math.sin(theta_2d)*math.sin(math.pi/2 - theta_2d/2)
 
@@ -44,7 +46,7 @@ x2 = np.linspace(1, 2**(1/6)*d, 100)
 
 y2, Force = WCA(x2, 0, 0, 1, d)
 
-x2 = x2 + radius_2d + d/2
+x2 = x2 + radius_2d
 
 # Plots
 fig, ax = plt.subplots()
@@ -82,7 +84,6 @@ plt.xlim(-(radius_2d + d/2), 25)
 # #
 # #
 # Cluster data adjusted for cluster size
-N_spheres = 5
 theta_2d = 2*math.pi/N_spheres
 const = 1/math.sin(theta_2d)*math.sin(math.pi/2 - theta_2d/2)
 radius_2d = 10*const/(1+2*const)

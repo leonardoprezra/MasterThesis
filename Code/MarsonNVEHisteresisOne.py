@@ -31,7 +31,7 @@ import hoomd
 import hoomd.md
 import random
 import math
-from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos
+from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos, WCA_corrected
 
 import os
 import sys
@@ -75,7 +75,8 @@ time_step = settings['time_step']
 
 
 equil_steps = settings['equil_steps']
-N_cluster = settings['N_cluster']
+N_cluster = 0
+settings['N_cluster'] = 0
 
 sigma_u = settings['diameter']*settings['ratio']
 epsilon_u = settings['epsilon']
@@ -153,7 +154,7 @@ if dimensions == 2:
 elif dimensions == 3:
     vol = math.pi/6*halo_diam**3 * total_N
 
-dens = 0.69
+dens = 0.55
 if dimensions == 2:
     boxLen = math.sqrt(vol / dens)
     hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
@@ -169,12 +170,17 @@ print('[II] Snapshot . . . . done.')
 nl = hoomd.md.nlist.cell()
 
 # WCA is LJ with shift that causes potential to be zero a r_cut
-lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
+# lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
+dict_coeff = dict(epsilon=epsilon_u, sigma=sigma_u, offset=0)
+table = hoomd.md.pair.table(width=100, nlist=nl)
+table.pair_coeff.set('core', 'core', func=WCA_corrected,
+                     rmin=0.1, rmax=(2 ** (1/6)*sigma_u), coeff=dict_coeff)
 
+'''
 # Shifts interaction potential, so that its value is zero at the r_cut
 lj.set_params(mode='shift')
 lj.pair_coeff.set('core', 'core', epsilon=epsilon_u, sigma=sigma_u)
-
+'''
 
 # # Equilibration
 # Integrator selection
@@ -203,9 +209,20 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                                     'rotational_kinetic_energy',
                                     'temperature',
                                     'pressure',
-                                    'pair_lj_energy'],
+                                    'pair_table_energy'],
+                        # 'pair_lj_energy'],
                         period=outputInterval_log,
                         overwrite=True)
+
+g = hoomd.group.all()
+
+logger = hoomd.analyze.log(filename='{:s}_special.log'.format(nameString),
+                           quantities=['pair_table_force'],
+                           period=outputInterval_log,
+                           overwrite=True)
+
+logger.register_callback(
+    'pair_table_force', lambda timestep: math.sqrt(sum(i*i for i in table.get_net_force(g))))
 
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      period=outputInterval_gsd,
@@ -215,7 +232,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(6900, 7310, 10):
+for dens in range(5500, 8210, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -232,7 +249,7 @@ print(vol/system.box.get_volume())
 
 
 # Decrease density
-for dens in range(7300, 6890, -10):
+for dens in range(8200, 5490, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
