@@ -151,7 +151,7 @@ min_val, Force = WCA_corrected(2**(1/6) * 10 - radius_2d, 0,
                                0, 1, 2*radius_2d+d, radius_2d)
 max_val, Force = WCA_corrected(d/2, 0, 0, 1, 2*radius_2d+d, radius_2d)
 
-distances = np.linspace(d/2, 2**(1/6) * 10 - radius_2d, 1000)
+distances = np.linspace(d/2, 2**(1/6) * 10 - radius_2d, 100)
 
 range_val = [[r, WCA_corrected(r, 0, 0, 1, 2*radius_2d+d, radius_2d)[0]]
              for r in distances]
@@ -206,7 +206,7 @@ min_val, Force = WCA(2**(1/6) * 10, 0,
                      0, 1, 2*radius_2d+d)
 max_val, Force = WCA((2*radius_2d+d)/2, 0, 0, 1, 2*radius_2d+d)
 
-distances = np.linspace((2*radius_2d+d)/2, 2**(1/6) * 10, 1000)
+distances = np.linspace((2*radius_2d+d)/2, 2**(1/6) * 10, 100)
 
 range_val = [[r, WCA(r, 0, 0, 1, 2*radius_2d+d)[0]]
              for r in distances]
