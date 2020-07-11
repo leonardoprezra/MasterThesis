@@ -17,8 +17,6 @@ def WCA(r, rmin, rmax, epsilon, sigma):
 
 
 def WCA_corrected(r, rmin, rmax, epsilon, sigma, offset):
-    print(offset)
-    print(sigma)
     r = r + offset
     V = 4 * epsilon * ((sigma / r)**12 - (sigma / r)**6) + epsilon
     F = 4 * epsilon / r * (12 * (sigma / r)**12 - 6 * (sigma / r)**6)
@@ -26,7 +24,7 @@ def WCA_corrected(r, rmin, rmax, epsilon, sigma, offset):
 
 
 # Adjust number of halo spheres
-N_spheres = 3
+N_spheres = 20
 
 # #
 # #
@@ -142,5 +140,105 @@ plt.xlim(-5, 15)
 plt.ylabel('$U_{WCA}$ / -')
 plt.xlabel('r / -')
 
+# #
+# #
+# #
+# #
+# Draw potential field Cluster
+
+# choose color gradient
+min_val, Force = WCA_corrected(2**(1/6) * 10 - radius_2d, 0,
+                               0, 1, 2*radius_2d+d, radius_2d)
+max_val, Force = WCA_corrected(d/2, 0, 0, 1, 2*radius_2d+d, radius_2d)
+
+distances = np.linspace(d/2, 2**(1/6) * 10 - radius_2d, 1000)
+
+range_val = [[r, WCA_corrected(r, 0, 0, 1, 2*radius_2d+d, radius_2d)[0]]
+             for r in distances]
+
+for i in range(len(range_val)):
+    range_val[i][1] = (range_val[i][1]-min_val)/(max_val-min_val)*0.7
+
+fig, ax = plt.subplots()
+plt.grid(linestyle='--', linewidth=0.75, color='lightgray')
+ax.set_aspect(1)
+plt.rcParams.update({'mathtext.default': 'regular'})
+
+for i in range(N_spheres):
+    coord = (radius_2d*math.cos(theta_2d*i), radius_2d*math.sin(theta_2d*i))
+    core_diam = (radius_2d-d/2)*2
+    circle2 = plt.Circle(coord, color='g', radius=d/2, fill=True, alpha=0.5)
+    ax.add_artist(circle2)
+
+    for vals in range_val:
+        circle3 = plt.Circle(
+            coord, color='r', radius=vals[0], fill=False, alpha=vals[1])
+        ax.add_artist(circle3)
+
+circle2 = plt.Circle((0, 0), color='g', radius=radius_2d -
+                     d/2, fill=True, alpha=0.5)
+ax.add_artist(circle2)
+
+circle1 = plt.Circle((0, 0), 5, color='b', fill=False, alpha=0.5)
+ax.add_artist(circle1)
+circle4 = plt.Circle((0, 0), 2**(1/6)*10, color='y', fill=False, alpha=0.5)
+ax.add_artist(circle4)
+
+plt.hlines(0, -15, 15, colors='k',
+           linestyle='--', linewidth=0.75)
+plt.vlines(0, -15, 15, colors='k',
+           linestyle='--', linewidth=0.75)
+plt.vlines(radius_2d, -5, 15, colors='k',
+           linestyle='--', linewidth=0.75)
+plt.ylim(-15, 15)
+plt.xlim(-15, 15)
+plt.ylabel('r / -')
+plt.xlabel('r / -')
+
+# #
+# #
+# #
+# #
+# Draw potential field disk
+
+# choose color gradient
+min_val, Force = WCA(2**(1/6) * 10, 0,
+                     0, 1, 2*radius_2d+d)
+max_val, Force = WCA((2*radius_2d+d)/2, 0, 0, 1, 2*radius_2d+d)
+
+distances = np.linspace((2*radius_2d+d)/2, 2**(1/6) * 10, 1000)
+
+range_val = [[r, WCA(r, 0, 0, 1, 2*radius_2d+d)[0]]
+             for r in distances]
+
+for i in range(len(range_val)):
+    range_val[i][1] = (range_val[i][1]-min_val)/(max_val-min_val)*0.7
+
+fig, ax = plt.subplots()
+plt.grid(linestyle='--', linewidth=0.75, color='lightgray')
+ax.set_aspect(1)
+plt.rcParams.update({'mathtext.default': 'regular'})
+
+for vals in range_val:
+    circle3 = plt.Circle(
+        (0, 0), color='r', radius=vals[0], fill=False, alpha=vals[1])
+    ax.add_artist(circle3)
+
+circle1 = plt.Circle((0, 0), 5, color='b', fill=False, alpha=0.5)
+ax.add_artist(circle1)
+circle4 = plt.Circle((0, 0), 2**(1/6)*10, color='y', fill=False, alpha=0.5)
+ax.add_artist(circle4)
+
+plt.hlines(0, -15, 15, colors='k',
+           linestyle='--', linewidth=0.75)
+plt.vlines(0, -15, 15, colors='k',
+           linestyle='--', linewidth=0.75)
+plt.vlines(radius_2d, -5, 15, colors='k',
+           linestyle='--', linewidth=0.75)
+plt.ylim(-15, 15)
+plt.xlim(-15, 15)
+plt.ylabel('r / -')
+plt.xlabel('r / -')
+
 plt.show()
-plt.clf()
+plt.close()

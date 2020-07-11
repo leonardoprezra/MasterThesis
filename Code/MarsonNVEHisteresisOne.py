@@ -214,16 +214,6 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                         period=outputInterval_log,
                         overwrite=True)
 
-g = hoomd.group.all()
-
-logger = hoomd.analyze.log(filename='{:s}_special.log'.format(nameString),
-                           quantities=['pair_table_force'],
-                           period=outputInterval_log,
-                           overwrite=True)
-
-logger.register_callback(
-    'pair_table_force', lambda timestep: math.sqrt(sum(i*i for i in table.get_net_force(g))))
-
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      period=outputInterval_gsd,
                      group=hoomd.group.all(),

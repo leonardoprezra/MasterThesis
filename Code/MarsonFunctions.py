@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 4  # N**2 or N**3 are the number of PSCs
+settings['N'] = 6  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 10.0  # Outer diameter of cluster
 settings['poly'] = '2Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
