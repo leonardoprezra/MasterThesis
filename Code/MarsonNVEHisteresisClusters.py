@@ -71,11 +71,10 @@ outputInterval_gsd = settings['outputInterval_gsd']
 outputInterval_log = settings['outputInterval_log']
 time_step = settings['time_step']
 
-therm_steps = settings['therm_steps']
 equil_steps = settings['equil_steps']
 N_cluster = settings['N_cluster']
 
-sigma_u = settings['diameter']*settings['ratio']
+sigma_u = settings['diameter']/settings['diameter']*settings['ratio']
 epsilon_u = settings['epsilon']
 
 # Print the correct number of clusters in the system
@@ -105,6 +104,10 @@ for k, v in settings.items():
 cluster = PartCluster(
     poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
 
+print('halo_diam={}'.format(cluster.halo_diam))
+print('core_diam={}'.format(cluster.core_diam))
+print('sphere_diam={}'.format(cluster.sphere_diam))
+print(cluster.core_coord)
 
 # Initialize execution context
 hoomd.context.initialize("")  # "--mode=gpu"
@@ -130,49 +133,53 @@ elif dimensions == 3:
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
 
-# WCA is LJ with shift that causes potential to be zero a r_cut
-# lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
+# Choose pair potential
 r_cut = (2 ** (1/6)*sigma_u)
-offset = (cluster.halo_diam/2+cluster.core_diam/2)
 print('r_cut={}'.format(r_cut))
-print('offset={}'.format(offset))
-print('halo_diam={}'.format(cluster.halo_diam))
-print('visible_radius={}'.format(r_cut-offset))
-r_vis = r_cut-offset
 
+# Table potential
+if settings['pair'] == 'tabulated':
+    # Table potential
+    offset = (cluster.halo_diam/2+cluster.core_diam/2)
+    r_vis = r_cut-offset
 
-n_pos = math.pi / (2*math.asin(cluster.halo_diam / (2*r_vis)))
+    print('offset={}'.format(offset))
+    print('visible_radius={}'.format(r_cut-offset))
 
-print('n_pos={}'.format(n_pos))
+    n_pos = math.pi / (2*math.asin(cluster.halo_diam / (2*r_vis)))
+    corr = int(n_pos)*N_cluster
 
+    print('n_pos={}'.format(n_pos))
+    dict_coeff = dict(epsilon=epsilon_u, sigma=sigma_u,
+                      offset=offset)
 
-dict_coeff = dict(epsilon=epsilon_u, sigma=sigma_u,
-                  offset=offset, corr=int(n_pos)*N_cluster)
+    table = hoomd.md.pair.table(width=100, nlist=nl)
+    table.pair_coeff.set('halo', 'halo', func=WCA_corrected,
+                         rmin=0, rmax=r_vis, coeff=dict_coeff)
+    table.pair_coeff.set(['halo', 'core'], 'core',
+                         func=WCA_corrected, rmin=0.1, rmax=0.2, coeff=dict_coeff)
 
-table = hoomd.md.pair.table(width=100, nlist=nl)
-table.pair_coeff.set('halo', 'halo', func=WCA_corrected,
-                     rmin=0.1, rmax=r_cut, coeff=dict_coeff)
-table.pair_coeff.set(['halo', 'core'], 'core',
-                     func=WCA_corrected, rmin=0.1, rmax=0.2, coeff=dict_coeff)
+# LJ shifted potential
+elif settings['pair'] == 'LJ':
+    # WCA is LJ with shift that causes potential to be zero a r_cut
+    lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
 
+    # Shifts interaction potential, so that its value is zero at the r_cut
+    lj.set_params(mode='shift')
+    lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
 
-'''
-# Shifts interaction potential, so that its value is zero at the r_cut
-lj.set_params(mode='shift')
-lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
+    if settings['ratio'] == 1:
+        lj.pair_coeff.set(['halo', 'core'], 'core',
+                          r_cut=False, epsilon=0, sigma=0)
+    elif settings['ratio'] < 1 and settings['ratio'] > 0:
+        sigma_core_core = cluster.core_diam
+        lj.pair_coeff.set('core', 'core', r_cut=2**(1/6) *
+                          sigma_core_core, epsilon=epsilon_u, sigma=sigma_core_core)
 
-if settings['ratio'] == 1:
-    lj.pair_coeff.set(['halo', 'core'], 'core',
-                      r_cut=False, epsilon=0, sigma=0)
-elif settings['ratio'] < 1 and settings['ratio'] > 0:
-    sigma_core_core = cluster.core_diam
-    lj.pair_coeff.set('core', 'core', r_cut=2**(1/6) *
-                      sigma_core_core, epsilon=epsilon_u, sigma=sigma_core_core)
+        sigma_halo_core = cluster.core_diam/2 + cluster.halo_diam/2
+        lj.pair_coeff.set('halo', 'core', r_cut=2**(1/6) *
+                          sigma_halo_core, epsilon=epsilon_u, sigma=sigma_halo_core)
 
-    sigma_halo_core = cluster.core_diam/2 + cluster.halo_diam/2
-    lj.pair_coeff.set('halo', 'core', r_cut=2**(1/6) *
-                      sigma_halo_core, epsilon=epsilon_u, sigma=sigma_halo_core)
-'''
 
 # # Equilibration
 # Integrator selection
@@ -194,21 +201,34 @@ elif settings['integrator'] == 'nve':
 
 
 # Store snapshot information
-
-log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
-                        quantities=['volume',
-                                    'momentum',
-                                    'time',
-                                    'potential_energy',
-                                    'kinetic_energy',
-                                    'translational_kinetic_energy',
-                                    'rotational_kinetic_energy',
-                                    'temperature',
-                                    'pressure',
-                                    'pair_table_energy'],
-                        # 'pair_lj_energy'],
-                        period=outputInterval_log,
-                        overwrite=True)
+if settings['pair'] == 'tabulated':
+    log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
+                            quantities=['volume',
+                                        'momentum',
+                                        'time',
+                                        'potential_energy',
+                                        'kinetic_energy',
+                                        'translational_kinetic_energy',
+                                        'rotational_kinetic_energy',
+                                        'temperature',
+                                        'pressure',
+                                        'pair_table_energy'],
+                            period=outputInterval_log,
+                            overwrite=True)
+elif settings['pair'] == 'LJ':
+    log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
+                            quantities=['volume',
+                                        'momentum',
+                                        'time',
+                                        'potential_energy',
+                                        'kinetic_energy',
+                                        'translational_kinetic_energy',
+                                        'rotational_kinetic_energy',
+                                        'temperature',
+                                        'pressure',
+                                        'pair_lj_energy'],
+                            period=outputInterval_log,
+                            overwrite=True)
 
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      period=outputInterval_gsd,

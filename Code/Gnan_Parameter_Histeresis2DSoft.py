@@ -49,7 +49,7 @@ settings['N'] = 65  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
-settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}'
+settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}_pair-{pair}_harmk-{harm_k}'
 settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
 settings['outputInterval_gsd'] = 20000
@@ -83,7 +83,8 @@ parameterspace += [
      'dimensions': 2,
      'N_cluster': args.N_cluster,
      'ratio': 1,
-     'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
+     'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
+     'pair': 'tabulated'
      # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
      }]
 
