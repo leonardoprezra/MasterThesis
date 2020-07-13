@@ -57,7 +57,7 @@ settings['outputInterval_gsd'] = 70000
 settings['outputInterval_log'] = 70
 settings['equil_steps'] = 70000  # Number of equilibration steps
 settings['ratio'] = 1
-settings['tstep_multiplier'] = 0.005
+settings['tstep_multiplier'] = 0.0001
 settings['sigma'] = settings['diameter'] * \
     settings['ratio']  # WCA-potential parameters (LANGEVIN)
 
@@ -79,7 +79,7 @@ parameterspace += [
      'N_cluster': args.N_cluster,
      'ratio': 1,
      'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-     'pair' : 'tabulated'
+     'pair': 'LJ'
      # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
      }]
 

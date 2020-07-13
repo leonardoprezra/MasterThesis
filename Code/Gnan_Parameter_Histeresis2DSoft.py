@@ -40,6 +40,8 @@ parser = argparse.ArgumentParser(
     description='Run simulations of soft 2D clusters.')
 parser.add_argument('-n', '--Number-Spheres', type=int, dest='N_cluster',
                     help='number of spheres in the cluster')
+parser.add_argument('-k', '--K-Spring', type=int, dest='harm_k',
+                    help='spring parameter of harmonic bond')
 
 args = parser.parse_args()
 
@@ -52,20 +54,20 @@ settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}_pair-{pair}_harmk-{harm_k}'
 settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
-settings['outputInterval_gsd'] = 20000
+settings['outputInterval_gsd'] = 30000
 # Number of time steps between data storage in log file
-settings['outputInterval_log'] = 20
-settings['equil_steps'] = 20000  # Number of equilibration steps
+settings['outputInterval_log'] = 30
+settings['equil_steps'] = 30000  # Number of equilibration steps
 settings['ratio'] = 1
 settings['tstep_multiplier'] = 0.005
 settings['sigma'] = settings['diameter'] * \
     settings['ratio']  # WCA-potential parameters (LANGEVIN)
-
+settings['pair'] = 'LJ'
 settings['density'] = 0.70
 
 settings['fene_k'] = 15
 settings['fene_r0'] = 1.5
-settings['harm_k'] = 500
+settings['harm_k'] = args.harm_k
 
 nameFormat = "dataFLEX_{poly}/" + settings['nameString']
 
@@ -79,7 +81,7 @@ tstep_multiplier = settings['tstep_multiplier']
 parameterspace += [
     {**settings,
      'integrator': 'langevin',
-     'poly': '2Dspheres',
+     'poly': 'Dspheres',
      'dimensions': 2,
      'N_cluster': args.N_cluster,
      'ratio': 1,

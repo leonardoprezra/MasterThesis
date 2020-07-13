@@ -32,7 +32,7 @@ import hoomd.md
 import random
 import math
 from GnanFunctions import create_snapshot_soft, hertzian
-from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos, WCA_corrected
+from MarsonFunctions import core_properties, mom_inertia, settings, PartCluster, create_snapshot, unif_pos
 
 import os
 import sys
@@ -110,7 +110,10 @@ for k, v in settings.items():
 # Core particle properties
 cluster = PartCluster(
     poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
-
+print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+print('halo_diam={}'.format(cluster.halo_diam))
+print('core_diam={}'.format(cluster.core_diam))
+print('sphere_diam={}'.format(cluster.sphere_diam))
 
 # Initialize execution context
 hoomd.context.initialize("")  # "--mode=gpu"
@@ -125,53 +128,27 @@ system, total_N = create_snapshot_soft(
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
 
-# Choose pair potential
-r_cut = (2 ** (1/6)*sigma_u)
-print('r_cut={}'.format(r_cut))
-print('halo_diam={}'.format(cluster.halo_diam))
-print('core_diam={}'.format(cluster.core_diam))
-print('sphere_diam={}'.format(cluster.sphere_diam))
+# WCA is LJ with shift that causes potential to be zero a r_cut
+lj = hoomd.md.pair.lj(r_cut=2**(1/6)*cluster.halo_diam, nlist=nl)
 
-# Table potential
-if settings['pair'] == 'tabulated':
-    offset = (cluster.halo_diam/2+cluster.core_diam/2)
-    r_vis = r_cut-offset
+# Shifts interaction potential, so that its value is zero at the r_cut
+lj.set_params(mode='shift')
 
-    print('offset={}'.format(offset))
-    print('visible_radius={}'.format(r_cut-offset))
-
-    dict_coeff = dict(epsilon=epsilon_u, sigma=sigma_u,
-                      offset=offset)
-
-    table = hoomd.md.pair.table(width=100, nlist=nl)
-    table.pair_coeff.set('halo', 'halo', func=WCA_corrected,
-                         rmin=0, rmax=r_vis, coeff=dict_coeff)
-    table.pair_coeff.set(['halo', 'core'], 'core',
-                         func=WCA_corrected, rmin=0.1, rmax=0.2, coeff=dict_coeff)
-
-elif settings['pair'] == 'LJ':
-    # WCA is LJ with shift that causes potential to be zero a r_cut
-    lj = hoomd.md.pair.lj(r_cut=2**(1/6)*sigma_u, nlist=nl)
-
-    # Shifts interaction potential, so that its value is zero at the r_cut
-    lj.set_params(mode='shift')
-
-    lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
-    # r_cut = False, excludes type pair interaction from neighbour list
-    # No interaction of halo-core or core-core
-    lj.pair_coeff.set(['halo', 'core'], 'core',
-                      r_cut=False, epsilon=0, sigma=0)
+lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=cluster.halo_diam)
+# r_cut = False, excludes type pair interaction from neighbour list
+# No interaction of halo-core or core-core
+lj.pair_coeff.set(['halo', 'core'], 'core', r_cut=False, epsilon=0, sigma=0)
 
 # Apply FENE bonds
 FENE = hoomd.md.bond.fene()
-FENE.bond_coeff.set('fene', k=fene_k, r0=cluster.sphere_diam*1.5, sigma=sigma_u,
-                    epsilon=settings['epsilon'])
+FENE.bond_coeff.set('fene', k=fene_k/(cluster.halo_diam**2), r0=fene_r0*cluster.halo_diam, sigma=cluster.halo_diam,
+                    epsilon=2)
 FENE.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
 
 # Apply Harmonic bonds
 HARMONIC = hoomd.md.bond.harmonic()
-HARMONIC.bond_coeff.set('harmonic', k=harm_k, r0=(
-    cluster.sphere_diam-cluster.halo_diam)/2)
+HARMONIC.bond_coeff.set('harmonic', k=harm_k/(cluster.halo_diam**2), r0=(
+    cluster.sphere_diam-halo_diam)/2)
 HARMONIC.bond_coeff.set('fene', k=0, r0=0)
 
 '''
@@ -190,6 +167,8 @@ langevin = hoomd.md.integrate.langevin(
     group=all_group, kT=settings['kT_therm'], seed=settings['seed'])
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
 langevin.set_gamma(a='core', gamma=0)
+
+
 '''
 halo_group = hoomd.group.type('halo')
 core_group = hoomd.group.type('core')
@@ -211,7 +190,7 @@ print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
 print(vol/system.box.get_volume())
 
 pre_dens = vol/system.box.get_volume()
-dens = 0.45
+dens = 0.58
 
 if dimensions == 2:
     if dimensions == 2:
@@ -241,38 +220,29 @@ elif dimensions == 3:
 # hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
 #                overwrite=True, period=None)
 # Computes thermodynamical properties of halo particles
+halo_group = hoomd.group.type(type='halo', name='halo')
+core_group = hoomd.group.type(type='core', name='core')
+halo_thermo = hoomd.compute.thermo(group=halo_group)
+core_thermo = hoomd.compute.thermo(group=core_group)
 
-#halo_thermo = hoomd.compute.thermo(group=group_halo)
+log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
+                        quantities=['volume',
+                                    'momentum',
+                                    'time',
+                                    'potential_energy',
+                                    'kinetic_energy',
+                                    'translational_kinetic_energy',
+                                    'rotational_kinetic_energy',
+                                    'temperature',
+                                    'pressure',
+                                    'pair_lj_energy',
+                                    'potential_energy_core',
+                                    'potential_energy_halo',
+                                    'kinetic_energy_core',
+                                    'kinetic_energy_halo'],
+                        period=outputInterval_log,
+                        overwrite=True)
 
-# Store snapshot information
-if settings['pair'] == 'tabulated':
-    log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
-                            quantities=['volume',
-                                        'momentum',
-                                        'time',
-                                        'potential_energy',
-                                        'kinetic_energy',
-                                        'translational_kinetic_energy',
-                                        'rotational_kinetic_energy',
-                                        'temperature',
-                                        'pressure',
-                                        'pair_table_energy'],
-                            period=outputInterval_log,
-                            overwrite=True)
-elif settings['pair'] == 'LJ':
-    log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
-                            quantities=['volume',
-                                        'momentum',
-                                        'time',
-                                        'potential_energy',
-                                        'kinetic_energy',
-                                        'translational_kinetic_energy',
-                                        'rotational_kinetic_energy',
-                                        'temperature',
-                                        'pressure',
-                                        'pair_lj_energy'],
-                            period=outputInterval_log,
-                            overwrite=True)
 
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      period=outputInterval_gsd,
@@ -296,7 +266,7 @@ with redirect_stdout(trap_stdout):
 
 # Increase density
 
-for dens in range(4500, 9010, 10):
+for dens in range(5800, 8210, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -313,7 +283,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(9000, 4490, -10):
+for dens in range(8200, 5790, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)

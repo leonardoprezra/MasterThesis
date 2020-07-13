@@ -74,7 +74,6 @@ time_step = settings['time_step']
 equil_steps = settings['equil_steps']
 N_cluster = settings['N_cluster']
 
-sigma_u = settings['diameter']/settings['diameter']*settings['ratio']
 epsilon_u = settings['epsilon']
 
 # Print the correct number of clusters in the system
@@ -93,6 +92,26 @@ settings['N'] = user_N
 if(not os.path.exists("data_{}".format(poly_key))):
     os.mkdir("data_{}".format(poly_key))
 
+# Core particle properties
+cluster = PartCluster(
+    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
+
+print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+print('halo_diam={}'.format(cluster.halo_diam))
+print('core_diam={}'.format(cluster.core_diam))
+print('sphere_diam={}'.format(cluster.sphere_diam))
+print(cluster.core_coord)
+
+# Updates parameters
+settings['diameter'] = cluster.sphere_diam
+
+if settings['pair'] == 'tabulated':
+    settings['sigma'] = cluster.sphere_diam
+    sigma_u = cluster.sphere_diam
+elif settings['pair'] == 'LJ':
+    settings['sigma'] = cluster.halo_diam
+    sigma_u = cluster.halo_diam
+
 # Print simulation information
 print('Working on: {:s}\nUsing: {}'.format(nameString, __file__))
 
@@ -100,14 +119,6 @@ print("== using these settings ==")
 for k, v in settings.items():
     print("  {:15s}  =  {:}".format(k, v))
 
-# Core particle properties
-cluster = PartCluster(
-    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
-
-print('halo_diam={}'.format(cluster.halo_diam))
-print('core_diam={}'.format(cluster.core_diam))
-print('sphere_diam={}'.format(cluster.sphere_diam))
-print(cluster.core_coord)
 
 # Initialize execution context
 hoomd.context.initialize("")  # "--mode=gpu"
@@ -134,11 +145,12 @@ elif dimensions == 3:
 nl = hoomd.md.nlist.cell()
 
 # Choose pair potential
-r_cut = (2 ** (1/6)*sigma_u)
-print('r_cut={}'.format(r_cut))
 
 # Table potential
 if settings['pair'] == 'tabulated':
+    r_cut = (2 ** (1/6)*sigma_u)
+    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    print('r_cut={}'.format(r_cut))
     # Table potential
     offset = (cluster.halo_diam/2+cluster.core_diam/2)
     r_vis = r_cut-offset
@@ -146,10 +158,10 @@ if settings['pair'] == 'tabulated':
     print('offset={}'.format(offset))
     print('visible_radius={}'.format(r_cut-offset))
 
-    n_pos = math.pi / (2*math.asin(cluster.halo_diam / (2*r_vis)))
-    corr = int(n_pos)*N_cluster
+    #n_pos = math.pi / (2*math.asin(cluster.halo_diam / (2*r_vis)))
+    #corr = int(n_pos)*N_cluster
 
-    print('n_pos={}'.format(n_pos))
+    # print('n_pos={}'.format(n_pos))
     dict_coeff = dict(epsilon=epsilon_u, sigma=sigma_u,
                       offset=offset)
 
@@ -157,7 +169,7 @@ if settings['pair'] == 'tabulated':
     table.pair_coeff.set('halo', 'halo', func=WCA_corrected,
                          rmin=0, rmax=r_vis, coeff=dict_coeff)
     table.pair_coeff.set(['halo', 'core'], 'core',
-                         func=WCA_corrected, rmin=0.1, rmax=0.2, coeff=dict_coeff)
+                         func=WCA_corrected, rmin=0, rmax=0.002, coeff=dict_coeff)
 
 # LJ shifted potential
 elif settings['pair'] == 'LJ':
@@ -166,7 +178,8 @@ elif settings['pair'] == 'LJ':
 
     # Shifts interaction potential, so that its value is zero at the r_cut
     lj.set_params(mode='shift')
-    lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=sigma_u)
+    lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u,
+                      sigma=sigma_u)
 
     if settings['ratio'] == 1:
         lj.pair_coeff.set(['halo', 'core'], 'core',

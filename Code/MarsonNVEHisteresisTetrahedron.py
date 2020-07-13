@@ -71,7 +71,6 @@ outputInterval_gsd = settings['outputInterval_gsd']
 outputInterval_log = settings['outputInterval_log']
 time_step = settings['time_step']
 
-therm_steps = settings['therm_steps']
 equil_steps = settings['equil_steps']
 N_cluster = settings['N_cluster']
 

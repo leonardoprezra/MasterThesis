@@ -10,19 +10,19 @@ from scipy.spatial.transform import Rotation as R
 settings = {}
 
 settings['N'] = 6  # N**2 or N**3 are the number of PSCs
-settings['diameter'] = 10  # Outer diameter of cluster
+settings['diameter'] = 1  # Outer diameter of cluster
 settings['poly'] = '2Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
-settings['N_cluster'] = 3  # number of spheres in cluster
+settings['N_cluster'] = 7  # number of spheres in cluster
 settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 
 settings['integrator'] = 'langevin'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}_pair-{pair}'
 settings["initFile"] = "None"
-settings['pair'] = 'tabulated' # Pair potential used
+settings['pair'] = 'tabulated' # Pair potential used: tabulated or LJ
 
 settings['seed'] = 42  # Random number seed (HPMC, LANGEVIN)
 
@@ -42,12 +42,12 @@ settings['equil_steps'] = 50  # Number of equilibration steps
 
 settings['outputInterval_gsd'] = 50 # Number of time steps between data storage in gsd file
 settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
-settings['tstep_multiplier'] = 0.005
+settings['tstep_multiplier'] = 0.001
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
 settings['fene_k'] = 15
 settings['fene_r0'] = 1.5
-settings['harm_k'] = 1000
+settings['harm_k'] = 500
 
 
 
@@ -161,13 +161,13 @@ def core_properties(d=0, poly=None, mass=0, N_spheres=0):
             'dode_sphere_diam': (math.sqrt(3)*d*g_r/2+d/2)*2,
             'dode_halo_diam': d,
 
-            '2Dspheres_type': ['halo']*N_spheres,
-            '2Dspheres_coord': np.array([(radius_2d*math.cos(theta_2d*i), radius_2d*math.sin(theta_2d*i), 0) for i in range(N_spheres)]),
-            '2Dspheres_mass': mass*N_spheres,
-            '2Dspheres_N': N_spheres,
-            '2Dspheres_diam': (radius_2d-d/2)*2,
-            '2Dspheres_sphere_diam': radius_2d*2+d,
-            '2Dspheres_halo_diam': d,
+            'Dspheres_type': ['halo']*N_spheres,
+            'Dspheres_coord': np.array([(radius_2d*math.cos(theta_2d*i), radius_2d*math.sin(theta_2d*i), 0) for i in range(N_spheres)]),
+            'Dspheres_mass': mass*N_spheres,
+            'Dspheres_N': N_spheres,
+            'Dspheres_diam': (radius_2d-d/2)*2,
+            'Dspheres_sphere_diam': radius_2d*2+d,
+            'Dspheres_halo_diam': d,
 
             '3Dspheres_type': ['halo']*N_spheres,
             '3Dspheres_coord': coord,
@@ -260,14 +260,15 @@ class PartCluster:
         self.core_coord = quat_rotation(particles=self.core_coord, q=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
         self.halo_mass = halo_mass
         
-        # Corrects size to have sphere_diam = 1
-        self.core_coord = [(coord[0]/self.sphere_diam,coord[1]/self.sphere_diam, coord[2]/self.sphere_diam ) for coord in self.core_coord]
-        self.halo_diam = self.halo_diam/self.sphere_diam
-        self.core_diam = self.core_diam/self.sphere_diam
-        self.sphere_diam = self.sphere_diam/self.sphere_diam
-        self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
-            particles=self.core_coord, mass=halo_mass)
-
+        if poly_key == '2Dspheres':
+            # Corrects size to have sphere_diam = 1
+            self.core_coord = [(coord[0]/self.sphere_diam,coord[1]/self.sphere_diam, coord[2]/self.sphere_diam ) for coord in self.core_coord]
+            self.halo_diam = self.halo_diam/self.sphere_diam
+            self.core_diam = self.core_diam/self.sphere_diam
+            self.sphere_diam = self.sphere_diam/self.sphere_diam
+            self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
+                particles=self.core_coord, mass=halo_mass)
+        
 
     def vol_cluster(self, dimensions):
         if dimensions == 2:
