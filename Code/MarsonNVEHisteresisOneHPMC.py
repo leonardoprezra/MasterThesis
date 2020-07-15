@@ -163,7 +163,7 @@ print('[II] Snapshot . . . . done.')
 
 # # Equilibration
 # Integrator selection
-mc = hoomd.hpmc.integrate.sphere(d=halo_diam*0.2, seed=1)
+mc = hoomd.hpmc.integrate.sphere(d=halo_diam*0.1, seed=1)
 
 mc.shape_param.set('core', diameter=halo_diam)
 
@@ -183,7 +183,8 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                         period=outputInterval_log,
                         overwrite=True)
 
-hoomd.hpmc.analyze.sdf(mc=mc, filename='{:s}_sdf.log'.format(nameString), xmax=0.02, dx=1e-4, navg=100, period=outputInterval_log)
+hoomd.hpmc.analyze.sdf(mc=mc, filename='{:s}_sdf.log'.format(
+    nameString), xmax=0.002, dx=1e-5, navg=100, period=outputInterval_log)
 
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
                      period=outputInterval_gsd,
@@ -193,7 +194,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(6500, 7310, 10):
+for dens in range(6500, 7410, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -210,7 +211,7 @@ print(vol/system.box.get_volume())
 
 
 # Decrease density
-for dens in range(7300, 6490, -10):
+for dens in range(7400, 6490, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
