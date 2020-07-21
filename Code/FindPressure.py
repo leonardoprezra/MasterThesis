@@ -26,8 +26,8 @@ parser.add_argument('-f', '--in-file', type=str, nargs='+',
 args = parser.parse_args()
 
 # Storage file
-# store_file = 'Plotting_data.npy'
-store_file = 'Testing_data.npy'
+store_file = 'Plotting_data.npy'
+#store_file = 'Testing_data.npy'
 
 # Data fitting parameters
 window_size = 37
@@ -90,6 +90,9 @@ for d in args.in_file:
     y = data[:, 1]
     std = data[:, 2]
     Nclus = int(d.split('_')[5].split('-')[1])
+
+    if Nclus == 0:
+        Nclus = 1
 
     # Divide data in compression and expansion runs
     x_comp = x[: int(len(x)/2)]

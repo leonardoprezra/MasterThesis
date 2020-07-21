@@ -118,23 +118,20 @@ data_sdf = [np.mean(data_sdf[i-4:i+1, :], axis=0)
             for i in range((10-1), (args.frame_total+1)*10 - 1, 10)]
 
 data_sdf = np.array(data_sdf)
-print(data_sdf.shape)
 
 
 
 # Store .log data
 data_log = np.genfromtxt(fname=file_log, skip_header=True)
-print(data_log.shape)
 
 # Get VF from data from .log file
 vol_log = np.array([[data_log[i-1, 0], vol / np.mean(data_log[i-args.frame_ave:i, 1])] for i in
                     range(args.frame_jump, (args.frame_total+1)*args.frame_jump, args.frame_jump)])
 
-num_dens = np.array([np.mean(data_log[i-args.frame_ave:i, 1]) for i in
+num_dens = np.array([[np.mean(data_log[i-args.frame_ave:i, 1])] for i in
                     range(args.frame_jump, (args.frame_total+1)*args.frame_jump, args.frame_jump)])
 num_dens = total_N / num_dens
 
-print(vol_log.shape)
 # print(vol_log[-1:])
 
 # #
@@ -188,7 +185,6 @@ p_sdf = num_dens*(1+p_sdf/(2*dimensions)) * math.pi/4*1**2
 # data = [timestep, VF, P/kT]
 data_ave = np.append(vol_log, p_sdf, axis=1)
 
-
 # #
 # #
 # #
@@ -207,7 +203,7 @@ ax5_1.plot(data_ave[mid_point:, 1], data_ave[mid_point:, 2], label=label+'_exp',
 
 
 # Axis labels
-ax5_1.set_ylabel('P$A_1$/kT / $d^{-1}$')
+ax5_1.set_ylabel('$\dfrac{PA_n}{kT}$ / $d^{-1}$')
 ax5_1.set_xlabel('$\phi$ / -')
 ax5_1.legend()
 fig5.tight_layout()
@@ -217,7 +213,8 @@ plt.clf()
 
 
 # Array contains [VF,PRESSURE,STD]
-save_data = data_ave[:,1:]
-
+#save_data = data_ave[:,1:]
+save_data = np.concatenate((data_ave[:,1:], np.zeros((182,1))), axis=1)
+print(save_data.shape)
 # Saves data in .npy file
 np.save(dir_name + d[:-4] + '_Pressure.npy', save_data)
