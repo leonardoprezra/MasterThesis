@@ -54,10 +54,10 @@ settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}_pair-{pair}_harmk-{harm_k}'
 settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
-settings['outputInterval_gsd'] = 30000
+settings['outputInterval_gsd'] = 70000
 # Number of time steps between data storage in log file
-settings['outputInterval_log'] = 30
-settings['equil_steps'] = 30000  # Number of equilibration steps
+settings['outputInterval_log'] = 70
+settings['equil_steps'] = 70000  # Number of equilibration steps
 settings['ratio'] = 1
 settings['tstep_multiplier'] = 0.005
 settings['sigma'] = settings['diameter'] * \

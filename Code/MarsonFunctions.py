@@ -11,18 +11,18 @@ settings = {}
 
 settings['N'] = 6  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Outer diameter of cluster
-settings['poly'] = '2Dspheres'  # Type of polyhedron
+settings['poly'] = 'Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 2  # 2d or 3d
-settings['N_cluster'] = 7  # number of spheres in cluster
+settings['N_cluster'] = 10  # number of spheres in cluster
 settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 
 settings['integrator'] = 'langevin'  # Integrator
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}_pair-{pair}'
 settings["initFile"] = "None"
-settings['pair'] = 'tabulated' # Pair potential used: tabulated or LJ
+settings['pair'] = 'LJ' # Pair potential used: tabulated or LJ
 
 settings['seed'] = 42  # Random number seed (HPMC, LANGEVIN)
 
@@ -42,7 +42,7 @@ settings['equil_steps'] = 50  # Number of equilibration steps
 
 settings['outputInterval_gsd'] = 50 # Number of time steps between data storage in gsd file
 settings['outputInterval_log'] = 5 # Number of time steps between data storage in log file
-settings['tstep_multiplier'] = 0.001
+settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
 settings['fene_k'] = 15

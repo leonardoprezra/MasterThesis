@@ -141,15 +141,25 @@ lj.pair_coeff.set(['halo', 'core'], 'core', r_cut=False, epsilon=0, sigma=0)
 
 # Apply FENE bonds
 FENE = hoomd.md.bond.fene()
-FENE.bond_coeff.set('fene', k=fene_k/(cluster.halo_diam**2), r0=fene_r0*cluster.halo_diam, sigma=cluster.halo_diam,
-                    epsilon=2)
+FENE.bond_coeff.set('fene', k=fene_k, r0=fene_r0, sigma=cluster.halo_diam,
+                    epsilon=epsilon_u)
 FENE.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
+FENE.bond_coeff.set('fene_skip', k=0, r0=0, sigma=0, epsilon=0)
+
+# Apply FENE SKIP bonds
+FENE_SKIP = hoomd.md.bond.fene()
+FENE_SKIP.bond_coeff.set('fene_skip', k=fene_k, r0=fene_r0*2, sigma=cluster.halo_diam*2,
+                         epsilon=epsilon_u)
+FENE_SKIP.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
+FENE_SKIP.bond_coeff.set('fene', k=0, r0=0, sigma=0, epsilon=0)
+
 
 # Apply Harmonic bonds
 HARMONIC = hoomd.md.bond.harmonic()
-HARMONIC.bond_coeff.set('harmonic', k=harm_k/(cluster.halo_diam**2), r0=(
+HARMONIC.bond_coeff.set('harmonic', k=harm_k, r0=(
     cluster.sphere_diam-halo_diam)/2)
 HARMONIC.bond_coeff.set('fene', k=0, r0=0)
+HARMONIC.bond_coeff.set('fene_skip', k=0, r0=0)
 
 '''
 # Apply Hertzian bonds
@@ -190,7 +200,7 @@ print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
 print(vol/system.box.get_volume())
 
 pre_dens = vol/system.box.get_volume()
-dens = 0.58
+dens = 0.55
 
 if dimensions == 2:
     if dimensions == 2:
@@ -266,7 +276,7 @@ with redirect_stdout(trap_stdout):
 
 # Increase density
 
-for dens in range(5800, 8210, 10):
+for dens in range(5500, 9910, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -283,7 +293,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(8200, 5790, -10):
+for dens in range(9900, 5490, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
