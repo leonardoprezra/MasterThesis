@@ -51,8 +51,8 @@ for d in args.in_file:
     fig1 = plt.figure(1)
     ax1_1 = fig1.add_subplot(1, 1, 1)
     ax1_1.plot(Nclus, p_rel, label='Relative Pressure')
-    ax1_1.set_ylabel('P/P(Nclus-0) / -')
-    ax1_1.set_xlabel('Nclus / -')
+    ax1_1.set_ylabel('$\dfrac{P^*_n}{P^*_1}$ / -')
+    ax1_1.set_xlabel('n / -')
     ax1_1.set_xticks(np.arange(3, 22))
     ax1_1.legend()
 
@@ -60,21 +60,21 @@ for d in args.in_file:
     fig2 = plt.figure(2)
     ax2_1 = fig2.add_subplot(1, 1, 1)
     ax2_1.plot(Nclus, vf_rel, label='Relative Density')
-    ax2_1.set_ylabel('$\phi$/$\phi$(Nclus-0) / -')
-    ax2_1.set_xlabel('Nclus / -')
+    ax2_1.set_ylabel('$\dfrac{\phi_n}{\phi_1}$ / -')
+    ax2_1.set_xlabel('n / -')
     ax2_1.set_xticks(np.arange(3, 22))
     ax2_1.legend()
 
     # Pressure variation
     fig3 = plt.figure(3)
     ax3_1 = fig3.add_subplot(1, 1, 1)
-    ax3_1.errorbar(np.concatenate(
-        (np.array([0]), Nclus)), mean_std_comp, yerr=std_std_comp, label='Pressure Variation Compression')
-    ax3_1.errorbar(np.concatenate(
-        (np.array([0]), Nclus)), mean_std_exp, yerr=std_std_exp, label='Pressure Variation Expansion')
+    ax3_1.errorbar(
+        Nclus, mean_std_comp[1:], yerr=std_std_comp[1:], label='Pressure Variation Compression')
+    ax3_1.errorbar(
+        Nclus, mean_std_exp[1:], yerr=std_std_exp[1:], label='Pressure Variation Expansion')
     ax3_1.set_ylabel('std / -')
-    ax3_1.set_xlabel('Nclus / -')
-    ax3_1.set_xticks(np.concatenate((np.array([0]), np.arange(3, 22))))
+    ax3_1.set_xlabel('n / -')
+    ax3_1.set_xticks(np.arange(3, 22))
     ax3_1.legend()
 
     # #
@@ -88,7 +88,7 @@ for d in args.in_file:
         n = Nclus[ind]
         vf_plot = []
 
-        vf_range = np.arange(0.55, vf, 0.01)
+        vf_range = np.linspace(0.55, vf, int((vf-0.55)/0.01), endpoint=False)
         vf_range = list(vf_range)
         for a in vf_range:
             vf_plot.append(a)
@@ -102,7 +102,7 @@ for d in args.in_file:
         n = Nclus[ind]
         vf_plot = []
 
-        vf_range = np.arange(vf, end_vf[ind], 0.01)
+        vf_range = np.linspace(vf, end_vf[ind], int((end_vf[ind] - vf)/0.01))
         vf_range = list(vf_range)
         for a in vf_range:
             vf_plot.append(a)
@@ -116,7 +116,7 @@ for d in args.in_file:
         n = Nclus[ind]
         vf_plot = []
 
-        vf_range = np.arange(0.78, vf, -0.01)
+        vf_range = np.linspace(vf+0.01, 0.78, int((0.78-vf)/0.01))
         vf_range = list(vf_range)
         for a in vf_range:
             vf_plot.append(a)
@@ -125,7 +125,7 @@ for d in args.in_file:
         ax4_1.plot(n_plot, vf_plot, 'rs', markersize=6, label='solid')
 
     ax4_1.set_ylabel('$\phi$ / -')
-    ax4_1.set_xlabel('Nclus / -')
+    ax4_1.set_xlabel('n / -')
     ax4_1.set_xticks(np.arange(3, 22))
     # ax4_1.legend()
 

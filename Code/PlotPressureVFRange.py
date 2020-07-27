@@ -103,12 +103,12 @@ for d in args.in_file:
     data_ave = np.array(data_ave)
 
     # Averages the Temperature data points at each VF
-    temp_ave = [ np.mean(data[i-args.frame_ave:i, 8]) for i in
-        range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
+    temp_ave = [np.mean(data[i-args.frame_ave:i, 8]) for i in
+                range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
     temp_ave = np.array(temp_ave)
 
     # P*A/(kT)
-    data_ave[:,1] = data_ave[:,1] * (vol/total_N) / temp_ave
+    data_ave[:, 1] = data_ave[:, 1] * (vol/total_N) / temp_ave
 
     # initial density frame of compresion section
     i_d = int((args.init_dens-data_ave[0, 0])*args.frame_jump)
@@ -124,7 +124,7 @@ for d in args.in_file:
     e_d = int((args.end_dens-data_ave[0, 0])*args.frame_jump) + 2
 
     # Error bars
-    error = [np.std(data[i-args.frame_ave:i, 9] * (vol/total_N) /data[i-args.frame_ave:i, 8] ) for i in
+    error = [np.std(data[i-args.frame_ave:i, 9] * (vol/total_N) / data[i-args.frame_ave:i, 8]) for i in
              range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
     error = np.array([error]).T
 
@@ -162,7 +162,6 @@ for d in args.in_file:
     error_exp = error[i_d_r:e_d_r]
     err_compl = np.concatenate((error_compr, error_exp), axis=0)
 
-    
     # Array contains [VF,PRESSURE,STD]
     save_data = np.concatenate((data_compl, err_compl), axis=1)
 

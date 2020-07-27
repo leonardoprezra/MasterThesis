@@ -120,7 +120,6 @@ data_sdf = [np.mean(data_sdf[i-4:i+1, :], axis=0)
 data_sdf = np.array(data_sdf)
 
 
-
 # Store .log data
 data_log = np.genfromtxt(fname=file_log, skip_header=True)
 
@@ -129,7 +128,7 @@ vol_log = np.array([[data_log[i-1, 0], vol / np.mean(data_log[i-args.frame_ave:i
                     range(args.frame_jump, (args.frame_total+1)*args.frame_jump, args.frame_jump)])
 
 num_dens = np.array([[np.mean(data_log[i-args.frame_ave:i, 1])] for i in
-                    range(args.frame_jump, (args.frame_total+1)*args.frame_jump, args.frame_jump)])
+                     range(args.frame_jump, (args.frame_total+1)*args.frame_jump, args.frame_jump)])
 num_dens = total_N / num_dens
 
 # print(vol_log[-1:])
@@ -176,6 +175,7 @@ def extrapolate(s, dx, xmax, degree=5):
     '''
     return np.polyval(p, 0.0)
 
+
 # Values of scale density function at s(0+)
 p_sdf = np.array([[extrapolate(i, dx=dx, xmax=xmax)] for i in data_sdf])
 
@@ -194,16 +194,18 @@ ax5_1 = fig5.add_subplot(1, 1, 1)
 ax5_1.set_title('data-{}\nN-{}'.format(poly_key, total_N))
 plt.rcParams.update({'mathtext.default': 'regular'})
 
-mid_point=int(args.frame_total/2)
+mid_point = int(args.frame_total/2)
 # Plot compresion
-ax5_1.plot(data_ave[:mid_point, 1], data_ave[:mid_point, 2], label=label+'_compr', linewidth=0.5)
+ax5_1.plot(data_ave[:mid_point, 1], data_ave[:mid_point, 2],
+           label=label+'_compr', linewidth=0.5)
 
 # Plot expansion
-ax5_1.plot(data_ave[mid_point:, 1], data_ave[mid_point:, 2], label=label+'_exp', linewidth=0.5)
+ax5_1.plot(data_ave[mid_point:, 1], data_ave[mid_point:, 2],
+           label=label+'_exp', linewidth=0.5)
 
 
 # Axis labels
-ax5_1.set_ylabel('$\dfrac{PA_n}{kT}$ / $d^{-1}$')
+ax5_1.set_ylabel('$\dfrac{PA_1}{kT}$ / $d^{-1}$')
 ax5_1.set_xlabel('$\phi$ / -')
 ax5_1.legend()
 fig5.tight_layout()
@@ -214,7 +216,7 @@ plt.clf()
 
 # Array contains [VF,PRESSURE,STD]
 #save_data = data_ave[:,1:]
-save_data = np.concatenate((data_ave[:,1:], np.zeros((182,1))), axis=1)
+save_data = np.concatenate((data_ave[:, 1:], np.zeros((182, 1))), axis=1)
 print(save_data.shape)
 # Saves data in .npy file
 np.save(dir_name + d[:-4] + '_Pressure.npy', save_data)
