@@ -205,7 +205,7 @@ ax5_1.plot(data_ave[mid_point:, 1], data_ave[mid_point:, 2],
 
 
 # Axis labels
-ax5_1.set_ylabel('$\dfrac{PA_1}{kT}$ / $d^{-1}$')
+ax5_1.set_ylabel('$\dfrac{PA_1}{kT}$ / -')
 ax5_1.set_xlabel('$\phi$ / -')
 ax5_1.legend()
 fig5.tight_layout()

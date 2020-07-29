@@ -145,7 +145,7 @@ for d in args.in_file:
 
     # Axis labels
     secax.set_xlabel('Frame number')
-    ax5_1.set_ylabel('$\dfrac{PA_n}{kT}$ / $d^{-1}$')
+    ax5_1.set_ylabel('$\dfrac{PA_n}{kT}$ / -')
     ax5_1.set_xlabel('$\phi$ / -')
     # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
     ax5_1.legend()

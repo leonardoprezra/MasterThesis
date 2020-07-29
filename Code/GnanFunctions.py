@@ -28,15 +28,25 @@ def create_snapshot_soft(cluster, N, dimensions=3):
     rigid
         Rigid bodies.
     '''
-
-    # Creates snapshot with first cluster
-    snapshot = hoomd.data.make_snapshot(N=1+cluster.N_cluster,
-                                        particle_types=['core', 'halo'],
-                                        #bond_types=['fene', 'hertzian'],
-                                        bond_types=['fene', 'fene_skip' ,'harmonic'],
-                                        box=hoomd.data.boxdim(
-                                            L=cluster.sphere_diam * 1.1, dimensions=dimensions)
-                                        )
+    if dimensions == 2:
+        # Creates snapshot with first cluster
+        snapshot = hoomd.data.make_snapshot(N=1+cluster.N_cluster,
+                                            particle_types=['core', 'halo'],
+                                            #bond_types=['fene', 'hertzian'],
+                                            bond_types=[
+                                                'fene', 'fene_skip', 'harmonic'],
+                                            box=hoomd.data.boxdim(
+                                                L=cluster.sphere_diam * 1.1, dimensions=dimensions)
+                                            )
+    elif dimensions == 3:
+        # Creates snapshot with first cluster
+        snapshot = hoomd.data.make_snapshot(N=1+cluster.N_cluster,
+                                            particle_types=['core', 'halo'],
+                                            #bond_types=['fene', 'hertzian'],
+                                            bond_types=['fene', 'harmonic'],
+                                            box=hoomd.data.boxdim(
+                                                L=cluster.sphere_diam * 1.1, dimensions=dimensions)
+                                            )
 
     # Properties of core particles
     snapshot.particles.typeid[0] = 0
@@ -65,11 +75,11 @@ def create_snapshot_soft(cluster, N, dimensions=3):
         snapshot.bonds.group[cluster.N_cluster:2*cluster.N_cluster] = [
             [i, i+2] for i in range(1, snapshot.particles.N-2)] + [[1, snapshot.particles.N-2]] + [[2, snapshot.particles.N-1]]
         snapshot.bonds.typeid[cluster.N_cluster:2*cluster.N_cluster] = 1
-            
+
         # Set Harmonic bonds among halo and core particles
         # Set Hertzian bonds among halo and core particles
         snapshot.bonds.group[2*cluster.N_cluster:] = [[0, i]
-                                                    for i in range(1, snapshot.particles.N)]
+                                                      for i in range(1, snapshot.particles.N)]
         snapshot.bonds.typeid[2*cluster.N_cluster:] = 2
 
     elif dimensions == 3:

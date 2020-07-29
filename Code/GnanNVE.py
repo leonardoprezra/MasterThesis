@@ -139,27 +139,40 @@ lj.pair_coeff.set('halo', 'halo', epsilon=epsilon_u, sigma=cluster.halo_diam)
 # No interaction of halo-core or core-core
 lj.pair_coeff.set(['halo', 'core'], 'core', r_cut=False, epsilon=0, sigma=0)
 
-# Apply FENE bonds
-FENE = hoomd.md.bond.fene()
-FENE.bond_coeff.set('fene', k=fene_k, r0=fene_r0, sigma=cluster.halo_diam,
-                    epsilon=epsilon_u)
-FENE.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
-FENE.bond_coeff.set('fene_skip', k=0, r0=0, sigma=0, epsilon=0)
+if dimensions == 2:
+    # Apply FENE bonds
+    FENE = hoomd.md.bond.fene()
+    FENE.bond_coeff.set('fene', k=fene_k, r0=fene_r0, sigma=cluster.halo_diam,
+                        epsilon=epsilon_u)
+    FENE.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
+    FENE.bond_coeff.set('fene_skip', k=0, r0=0, sigma=0, epsilon=0)
 
-# Apply FENE SKIP bonds
-FENE_SKIP = hoomd.md.bond.fene()
-FENE_SKIP.bond_coeff.set('fene_skip', k=fene_k, r0=fene_r0*2, sigma=cluster.halo_diam*2,
-                         epsilon=epsilon_u)
-FENE_SKIP.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
-FENE_SKIP.bond_coeff.set('fene', k=0, r0=0, sigma=0, epsilon=0)
+    # Apply FENE SKIP bonds
+    FENE_SKIP = hoomd.md.bond.fene()
+    FENE_SKIP.bond_coeff.set('fene_skip', k=fene_k, r0=fene_r0*2, sigma=cluster.halo_diam*2,
+                             epsilon=epsilon_u)
+    FENE_SKIP.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
+    FENE_SKIP.bond_coeff.set('fene', k=0, r0=0, sigma=0, epsilon=0)
 
+    # Apply Harmonic bonds
+    HARMONIC = hoomd.md.bond.harmonic()
+    HARMONIC.bond_coeff.set('harmonic', k=harm_k, r0=(
+        cluster.sphere_diam-halo_diam)/2)
+    HARMONIC.bond_coeff.set('fene', k=0, r0=0)
+    HARMONIC.bond_coeff.set('fene_skip', k=0, r0=0)
 
-# Apply Harmonic bonds
-HARMONIC = hoomd.md.bond.harmonic()
-HARMONIC.bond_coeff.set('harmonic', k=harm_k, r0=(
-    cluster.sphere_diam-halo_diam)/2)
-HARMONIC.bond_coeff.set('fene', k=0, r0=0)
-HARMONIC.bond_coeff.set('fene_skip', k=0, r0=0)
+elif dimensions == 3:
+    # Apply FENE bonds
+    FENE = hoomd.md.bond.fene()
+    FENE.bond_coeff.set('fene', k=fene_k, r0=fene_r0, sigma=cluster.halo_diam,
+                        epsilon=epsilon_u)
+    FENE.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
+
+    # Apply Harmonic bonds
+    HARMONIC = hoomd.md.bond.harmonic()
+    HARMONIC.bond_coeff.set('harmonic', k=harm_k, r0=(
+        cluster.sphere_diam-halo_diam)/2)
+    HARMONIC.bond_coeff.set('fene', k=0, r0=0)
 
 '''
 # Apply Hertzian bonds

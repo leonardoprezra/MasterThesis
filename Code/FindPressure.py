@@ -230,7 +230,7 @@ for d in args.in_file:
                spline_y_filtered_comp(x_end_comp), 'x')  # label='Phase Transition COMPRESSION')
     ax1_1.plot(x_start_exp, spline_y_filtered_exp(x_start_exp), 'x', x_end_exp,
                spline_y_filtered_exp(x_end_exp), 'x')  # label='Phase Transition EXPANSION')
-    ax1_1.set_ylabel('$\dfrac{PA_n}{kT}$ / $d^{-1}$')
+    ax1_1.set_ylabel('$\dfrac{PA_n}{kT}$ / -')
     ax1_1.set_xlabel('$\phi$ / -')
     ax1_1.legend()
     fig1.tight_layout()
