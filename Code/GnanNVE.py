@@ -208,12 +208,13 @@ langevin_core.disable()
 '''
 # Adjust density before actual run
 vol = cluster.vol_cluster(dimensions) * total_N
-
+hoomd.dump.gsd("{:s}final.gsd".format(nameString), group=hoomd.group.all(),
+               overwrite=True, period=None)
 print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
 print(vol/system.box.get_volume())
 
 pre_dens = vol/system.box.get_volume()
-dens = 0.55
+dens = 0.40
 
 if dimensions == 2:
     if dimensions == 2:
@@ -289,7 +290,7 @@ with redirect_stdout(trap_stdout):
 
 # Increase density
 
-for dens in range(5500, 9910, 10):
+for dens in range(4000, 7010, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -306,7 +307,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(9900, 5490, -10):
+for dens in range(7000, 3990, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)

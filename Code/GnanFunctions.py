@@ -100,7 +100,7 @@ def create_snapshot_soft(cluster, N, dimensions=3):
                 if i1 != i2 and i1 != 0 and i2 != 0:
                     dist = math.sqrt(sum([(p1[a]-p2[a])**2 for a in range(3)]))
 
-                    if dist <= cluster.halo_diam * 2:
+                    if dist <= cluster.halo_diam * 1.5:
                         pairs.append(i2)
 
             bonds_size += len(pairs)
