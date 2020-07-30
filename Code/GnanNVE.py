@@ -149,7 +149,7 @@ if dimensions == 2:
 
     # Apply FENE SKIP bonds
     FENE_SKIP = hoomd.md.bond.fene()
-    FENE_SKIP.bond_coeff.set('fene_skip', k=fene_k, r0=fene_r0*2, sigma=cluster.halo_diam*2,
+    FENE_SKIP.bond_coeff.set('fene_skip', k=0, r0=fene_r0*2, sigma=cluster.halo_diam,
                              epsilon=epsilon_u)
     FENE_SKIP.bond_coeff.set('harmonic', k=0, r0=0, sigma=0, epsilon=0)
     FENE_SKIP.bond_coeff.set('fene', k=0, r0=0, sigma=0, epsilon=0)
