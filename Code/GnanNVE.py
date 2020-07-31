@@ -290,7 +290,7 @@ with redirect_stdout(trap_stdout):
 
 # Increase density
 
-for dens in range(4000, 7010, 10):
+for dens in range(4000, 9910, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -307,7 +307,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(7000, 3990, -10):
+for dens in range(9900, 3990, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
