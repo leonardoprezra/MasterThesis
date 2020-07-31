@@ -82,11 +82,11 @@ parameterspace += [
     {**settings,
      'integrator': 'langevin',
      'poly': 'dode',
-     'dimensions': 2,
+     'dimensions': 3,
      'N_cluster': 20, #args.N_cluster,
      'ratio': 1,
      'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
-     'pair': 'tabulated'
+     'pair': 'LJ'
      # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']
      }]
 
