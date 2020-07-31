@@ -2,7 +2,7 @@
 # Batch processing script
 
 
-#PBS -l nodes=1:ppn=4,walltime=23:00:00
+#PBS -l nodes=1:ppn=4,walltime=23:45:00
 #PBS -N 3DSoft
 #PBS -t 50,100,200,300,400,500 #,11,12,13,14,15,16,17,18
 

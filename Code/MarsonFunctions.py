@@ -9,13 +9,13 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 6  # N**2 or N**3 are the number of PSCs
+settings['N'] = 4  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Outer diameter of cluster
-settings['poly'] = 'Dspheres'  # Type of polyhedron
+settings['poly'] = 'ico'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
-settings['dimensions'] = 2  # 2d or 3d
-settings['N_cluster'] = 10  # number of spheres in cluster
+settings['dimensions'] = 3  # 2d or 3d
+settings['N_cluster'] = 20  # number of spheres in cluster
 settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 
