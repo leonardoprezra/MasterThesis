@@ -3,7 +3,7 @@
 
 
 #PBS -l nodes=1:ppn=4,walltime=23:45:00
-#PBS -N 3DSoft
+#PBS -N ICO
 #PBS -t 400,500,600,700
 
 
@@ -19,5 +19,5 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python ~/MasterThesis/Code/Gnan_Parameter_Histeresis3DSoft.py -n 32 -k $PBS_ARRAYID
+python ~/MasterThesis/Code/Gnan_Parameter_HisteresisICOSoft.py -n 12 -k $PBS_ARRAYID
 

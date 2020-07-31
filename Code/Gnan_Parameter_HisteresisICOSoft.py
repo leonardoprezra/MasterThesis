@@ -66,7 +66,7 @@ settings['pair'] = 'LJ'
 settings['density'] = 0.70
 
 settings['fene_k'] = 15
-settings['fene_r0'] = 2.0
+settings['fene_r0'] = 1.5
 settings['harm_k'] = args.harm_k
 
 nameFormat = "dataFLEX_{poly}/" + settings['nameString']
@@ -81,9 +81,9 @@ tstep_multiplier = settings['tstep_multiplier']
 parameterspace += [
     {**settings,
      'integrator': 'langevin',
-     'poly': '3Dspheres',
+     'poly': 'ico',
      'dimensions': 3,
-     'N_cluster': args.N_cluster,  # args.N_cluster,
+     'N_cluster': 12,  # args.N_cluster,
      'ratio': 1,
      'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon']),
      'pair': 'LJ'

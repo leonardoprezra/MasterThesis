@@ -9,13 +9,13 @@ from scipy.spatial.transform import Rotation as R
 # Parameters
 settings = {}
 
-settings['N'] = 4  # N**2 or N**3 are the number of PSCs
+settings['N'] = 3  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Outer diameter of cluster
-settings['poly'] = 'ico'  # Type of polyhedron
+settings['poly'] = '3Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 3  # 2d or 3d
-settings['N_cluster'] = 20  # number of spheres in cluster
+settings['N_cluster'] = 32  # number of spheres in cluster
 settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 
@@ -46,7 +46,7 @@ settings['tstep_multiplier'] = 0.005
 settings['time_step'] = settings['tstep_multiplier']*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])  # Time step of MD simulations
 
 settings['fene_k'] = 15
-settings['fene_r0'] = 1.5
+settings['fene_r0'] = 2.0
 settings['harm_k'] = 50
 
 
@@ -257,7 +257,8 @@ class PartCluster:
         self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
             particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
                                                        # Rotation matrix to rotate from global coordinates to principal axes coordinates
-        self.core_coord = quat_rotation(particles=self.core_coord, q=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
+        if poly_key != '3Dspheres':
+            self.core_coord = quat_rotation(particles=self.core_coord, q=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
         self.halo_mass = halo_mass
         
         if poly_key == '2Dspheres':
@@ -478,7 +479,7 @@ def unif_pos(N, d):
     for i in range(len(points)):
         points[i] = [d/min_dist * b for b in points[i]]
 
-    core_diam = (1*d/min_dist - d/2)*2*0.01
+    core_diam = (1*d/min_dist - d/2)*2
     sphere_diam = (1*d/min_dist + d/2)*2
 
     return points, core_diam, sphere_diam

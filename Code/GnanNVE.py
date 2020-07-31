@@ -177,15 +177,52 @@ elif dimensions == 3:
 '''
 # Apply Hertzian bonds
 HERTZIAN = hoomd.md.bond.table(width=1000)
-HERTZIAN.bond_coeff.set('hertzian', func=hertzian, rmin=0, rmax=cluster.sphere_diam*2, coeff=dict(U=1000, sigma_H=(cluster.sphere_diam-halo_diam)/2))
-HERTZIAN.bond_coeff.set('fene', func=hertzian, rmin=0, rmax=cluster.sphere_diam*2, coeff=dict(U=0, sigma_H=(cluster.sphere_diam-halo_diam)/2))
+HERTZIAN.bond_coeff.set('hertzian', func=hertzian, rmin=0, rmax=cluster.sphere_diam*2,
+                        coeff=dict(U=1000, sigma_H=(cluster.sphere_diam-halo_diam)/2))
+HERTZIAN.bond_coeff.set('fene', func=hertzian, rmin=0, rmax=cluster.sphere_diam*2,
+                        coeff=dict(U=0, sigma_H=(cluster.sphere_diam-halo_diam)/2))
 '''
 # # Equilibration
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
 
-# Creates grooup consisting of central particles in rigid body
+# Creates groups
 all_group = hoomd.group.all()
+halo_group = hoomd.group.type(type='halo', name='halo')
+core_group = hoomd.group.type(type='core', name='core')
+
+# Computes thermodynamical properties of halo particles
+if dimensions == 2:
+    halo_thermo = hoomd.compute.thermo(group=halo_group)
+
+core_thermo = hoomd.compute.thermo(group=core_group)
+
+hoomd.dump.gsd("{:s}_initial.gsd".format(nameString), group=hoomd.group.all(),
+               overwrite=True, period=None)
+
+# Equilibration of 3D cluster
+if dimensions == 3:
+    langevin = hoomd.md.integrate.langevin(
+        group=halo_group, kT=settings['kT_therm'], seed=settings['seed'])
+    langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
+    langevin.set_gamma(a='core', gamma=0)
+
+    equil_gsd = hoomd.dump.gsd("{:s}_equil.gsd".format(nameString), group=hoomd.group.all(),
+                               overwrite=True, period=int(equil_steps/10))
+    equil_log = hoomd.analyze.log(filename='{:s}_equil.log'.format(nameString),
+                                  quantities=['volume',
+                                              'potential_energy',
+                                              'kinetic_energy',
+                                              'bond_fene_energy',
+                                              'bond_harmonic_energy'],
+                                  period=int(equil_steps/10),
+                                  overwrite=True)
+    hoomd.run(equil_steps, quiet=True)
+
+    equil_gsd.disable()
+    equil_log.disable()
+    langevin.disable()
+
 langevin = hoomd.md.integrate.langevin(
     group=all_group, kT=settings['kT_therm'], seed=settings['seed'])
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
@@ -206,10 +243,11 @@ langevin_core = hoomd.md.integrate.langevin(
 langevin_core.set_gamma(a='core', gamma=0)
 langevin_core.disable()
 '''
+
+
 # Adjust density before actual run
 vol = cluster.vol_cluster(dimensions) * total_N
-hoomd.dump.gsd("{:s}final.gsd".format(nameString), group=hoomd.group.all(),
-               overwrite=True, period=None)
+
 print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
 print(vol/system.box.get_volume())
 
@@ -243,11 +281,7 @@ elif dimensions == 3:
 # Store snapshot information
 # hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
 #                overwrite=True, period=None)
-# Computes thermodynamical properties of halo particles
-halo_group = hoomd.group.type(type='halo', name='halo')
-core_group = hoomd.group.type(type='core', name='core')
-halo_thermo = hoomd.compute.thermo(group=halo_group)
-core_thermo = hoomd.compute.thermo(group=core_group)
+
 
 log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                         quantities=['volume',
@@ -263,7 +297,9 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                                     'potential_energy_core',
                                     'potential_energy_halo',
                                     'kinetic_energy_core',
-                                    'kinetic_energy_halo'],
+                                    'kinetic_energy_halo',
+                                    'bond_fene_energy',
+                                    'bond_harmonic_energy'],
                         period=outputInterval_log,
                         overwrite=True)
 
@@ -290,7 +326,7 @@ with redirect_stdout(trap_stdout):
 
 # Increase density
 
-for dens in range(4000, 7010, 10):
+for dens in range(4000, 6010, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -307,7 +343,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(7000, 3990, -10):
+for dens in range(6000, 3990, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
