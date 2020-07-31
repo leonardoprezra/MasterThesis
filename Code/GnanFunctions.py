@@ -92,24 +92,47 @@ def create_snapshot_soft(cluster, N, dimensions=3):
 
         bonds_size = cluster.N_cluster
         # Set FENE bonds among halo particles
-        for i1, p1 in enumerate(snapshot.particles.position):
-            prev_bonds_size = bonds_size
-            pairs = []
-            for i2, p2 in enumerate(snapshot.particles.position):
+        if cluster.poly_key != '3Dspheres':
+            for i1, p1 in enumerate(snapshot.particles.position):
+                prev_bonds_size = bonds_size
+                pairs = []
+                for i2, p2 in enumerate(snapshot.particles.position):
 
-                if i1 != i2 and i1 != 0 and i2 != 0:
-                    dist = math.sqrt(sum([(p1[a]-p2[a])**2 for a in range(3)]))
+                    if i1 != i2 and i1 != 0 and i2 != 0:
+                        dist = math.sqrt(
+                            sum([(p1[a]-p2[a])**2 for a in range(3)]))
 
-                    if dist <= cluster.halo_diam * 1.5:
-                        pairs.append(i2)
+                        if dist <= cluster.halo_diam * 1.5:
+                            pairs.append(i2)
 
-            bonds_size += len(pairs)
+                bonds_size += len(pairs)
 
-            if prev_bonds_size != bonds_size:
-                snapshot.bonds.resize(bonds_size)
-                snapshot.bonds.group[prev_bonds_size:] = [[i1, i]
-                                                          for i in pairs]
-                snapshot.bonds.typeid[prev_bonds_size:] = 0
+                if prev_bonds_size != bonds_size:
+                    snapshot.bonds.resize(bonds_size)
+                    snapshot.bonds.group[prev_bonds_size:] = [[i1, i]
+                                                              for i in pairs]
+                    snapshot.bonds.typeid[prev_bonds_size:] = 0
+
+        elif cluster.poly_key == '3Dspheres':
+            for i1, p1 in enumerate(snapshot.particles.position):
+                prev_bonds_size = bonds_size
+                pairs = []
+                for i2, p2 in enumerate(snapshot.particles.position):
+
+                    if i1 != i2 and i1 != 0 and i2 != 0:
+                        dist = math.sqrt(
+                            sum([(p1[a]-p2[a])**2 for a in range(3)]))
+
+                        if dist <= cluster.halo_diam * 1.7:
+                            pairs.append(i2)
+
+                bonds_size += len(pairs)
+
+                if prev_bonds_size != bonds_size:
+                    snapshot.bonds.resize(bonds_size)
+                    snapshot.bonds.group[prev_bonds_size:] = [[i1, i]
+                                                              for i in pairs]
+                    snapshot.bonds.typeid[prev_bonds_size:] = 0
 
     # Replicates cluster in snapshot
 
