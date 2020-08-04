@@ -4,7 +4,7 @@
 
 #PBS -l nodes=1:ppn=4,walltime=23:45:00
 #PBS -N 3DSoft
-#PBS -t 400,500,600,700
+#PBS -t 100,200,300,400,500,600,700,800
 
 
 # Load required modules (compiler, ...)
