@@ -89,6 +89,12 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                     d[1].split('_')[5] + '_' + d[1].split('_')[7]
                 data = np.genfromtxt(fname=d[2], skip_header=True)
 
+                print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+                if d[1].split('_')[-1].split('-')[0] == 'harmk':
+                    label = d[1].split('_')[4] + '_' + \
+                        d[1].split('_')[5] + '_' + d[1].split('_')[-1]
+                    print(label)
+
                 # Check dimensions
                 dimensions = int(d[1].split('_')[4].split('-')[1])
                 total_N = int(d[1].split('_')[2].split('-')[1])
@@ -117,6 +123,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 # Error bars
                 error = [np.std(data[i-args.frame_ave:i, 9]) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
+                error = error/math.sqrt(args.frame_ave)
 
                 # ax5_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)
@@ -182,6 +189,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 # Error bars
                 error = [np.std(data[i-args.frame_ave:i, 4] + data[i-args.frame_ave:i, 5]) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
+
+                error = error/math.sqrt(args.frame_ave)
 
                 # ax1_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)

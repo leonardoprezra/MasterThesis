@@ -62,6 +62,14 @@ for d in args.in_file:
     # Label includes: (5) Nclus, (4) dim, (3) VF, (7) ratio
     label = d.split('_')[4] + '_' + \
         d.split('_')[5] + '_' + d.split('_')[7]
+
+    # Check for harmk
+    if d.split('_')[-1].split('-')[0] == 'harmk':
+        label = d.split('_')[4] + '_' + \
+            d.split('_')[5] + '_' + d.split('_')[-1]
+
+        harmk = d.split('_')[-1].split('-')[1]
+
     # Number of clusters in simulation (2)
     total_N = int(d.split('_')[2].split('-')[1])
     # Number of particles per cluster (4)
@@ -126,7 +134,7 @@ for d in args.in_file:
     # Error bars
     error = [np.std(data[i-args.frame_ave:i, 9] * (vol/total_N) / data[i-args.frame_ave:i, 8]) for i in
              range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
-    error = np.array([error]).T
+    error = np.array([error]).T/math.sqrt(args.frame_ave)
 
     # Plot compresion
     ax5_1.errorbar(data_ave[i_d:e_d, 0], data_ave[i_d:e_d, 1],
@@ -150,8 +158,12 @@ for d in args.in_file:
     # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
     ax5_1.legend()
     fig5.tight_layout()
-    fig5.savefig(
-        dir_name + 'PressureVF_data-{}_N-{}_Nclus-{}_IDens-{}_EDens-{}.pdf'.format(poly_key, total_N, N_cluster, args.init_dens, args.end_dens), format='pdf')
+    if d.split('_')[-1].split('-')[0] == 'harmk':
+        fig5.savefig(
+            dir_name + 'PressureVF_data-{}_N-{}_Nclus-{}_IDens-{}_EDens-{}_harmk-{}.pdf'.format(poly_key, total_N, N_cluster, args.init_dens, args.end_dens, harmk), format='pdf')
+    else:
+        fig5.savefig(
+            dir_name + 'PressureVF_data-{}_N-{}_Nclus-{}_IDens-{}_EDens-{}.pdf'.format(poly_key, total_N, N_cluster, args.init_dens, args.end_dens), format='pdf')
     plt.clf()
 
     # Prepare array with only information in the range
@@ -185,7 +197,7 @@ for d in args.in_file:
     # Error bars
     error = [np.std(data[i-args.frame_ave:i, 4] + data[i-args.frame_ave:i, 5]) for i in
              range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
-    error = np.array([error]).T
+    error = np.array([error]).T/math.sqrt(args.frame_ave)
 
     # Plot compresion
     ax1_1.errorbar(
@@ -209,8 +221,13 @@ for d in args.in_file:
     # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
     ax1_1.legend()
     fig1.tight_layout()
-    fig1.savefig(
-        dir_name + 'EnergyVF_data-{}_N-{}_Nclus-{}_IDens-{}_EDens-{}.pdf'.format(poly_key, total_N, N_cluster, args.init_dens, args.end_dens), format='pdf')
+
+    if d.split('_')[-1].split('-')[0] == 'harmk':
+        fig1.savefig(
+            dir_name + 'EnergyVF_data-{}_N-{}_Nclus-{}_IDens-{}_EDens-{}_harmk-{}.pdf'.format(poly_key, total_N, N_cluster, args.init_dens, args.end_dens, harmk), format='pdf')
+    else:
+        fig1.savefig(
+            dir_name + 'EnergyVF_data-{}_N-{}_Nclus-{}_IDens-{}_EDens-{}.pdf'.format(poly_key, total_N, N_cluster, args.init_dens, args.end_dens), format='pdf')
     plt.clf()
 
     # Prepare array with only information in the range
