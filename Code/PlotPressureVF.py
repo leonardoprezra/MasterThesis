@@ -121,9 +121,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 data_ave = np.array(data_ave)
 
                 # Error bars
-                error = [np.std(data[i-args.frame_ave:i, 9]) for i in
+                error = [np.std(data[i-args.frame_ave:i, 9])/math.sqrt(args.frame_ave) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
-                error = error/math.sqrt(args.frame_ave)
 
                 # ax5_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)
@@ -187,10 +186,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 data_ave = np.array(data_ave)
 
                 # Error bars
-                error = [np.std(data[i-args.frame_ave:i, 4] + data[i-args.frame_ave:i, 5]) for i in
+                error = [np.std(data[i-args.frame_ave:i, 4]/math.sqrt(args.frame_ave) + data[i-args.frame_ave:i, 5]) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
-
-                error = error/math.sqrt(args.frame_ave)
 
                 # ax1_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)
