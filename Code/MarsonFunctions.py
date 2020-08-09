@@ -11,11 +11,11 @@ settings = {}
 
 settings['N'] = 3  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Outer diameter of cluster
-settings['poly'] = '3Dspheres'  # Type of polyhedron
+settings['poly'] = 'Dspheres'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
-settings['dimensions'] = 3  # 2d or 3d
-settings['N_cluster'] = 32  # number of spheres in cluster
+settings['dimensions'] = 2  # 2d or 3d
+settings['N_cluster'] = 12  # number of spheres in cluster
 settings['ratio'] = 1.0 # halo_diam/halo_edge
 
 
@@ -205,6 +205,8 @@ class PartCluster:
         Diameter of halo sphere.
     hal_mass: float
         Mass of halo sphere.
+    dimensions : int
+        Dimensionality of the system.
     ratio : float
         halo_diam/distance-between-contiguous-particles
 
@@ -239,7 +241,7 @@ class PartCluster:
         Volume (area in 2D) of the cluster
     '''
 
-    def __init__(self, poly_key, N_cluster, halo_diam, halo_mass, ratio=1):
+    def __init__(self, poly_key, N_cluster, halo_diam, halo_mass, dimensions, ratio=1):
         self.core_type = core_properties(poly='{}_type'.format(
             poly_key), d=halo_diam, N_spheres=N_cluster)  # List to create clusters
         self.core_coord = core_properties(poly='{}_coord'.format(
@@ -255,7 +257,7 @@ class PartCluster:
         self.sphere_diam = self.core_diam + 2*self.halo_diam  # Diameter of sphere circunscribing PSC
         self.poly_key = poly_key
         self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
-            particles=self.core_coord, mass=halo_mass) # Moment of inertia (given as diagonal matrix),
+            particles=self.core_coord, mass=halo_mass, diam=self.halo_diam, dim=dimensions) # Moment of inertia (given as diagonal matrix),
                                                        # Rotation matrix to rotate from global coordinates to principal axes coordinates
         if poly_key != '3Dspheres':
             self.core_coord = quat_rotation(particles=self.core_coord, q=self.quaternion) # Coordinates of particles in cluster (principal axes coordinates)
@@ -268,8 +270,7 @@ class PartCluster:
             self.core_diam = self.core_diam/self.sphere_diam
             self.sphere_diam = self.sphere_diam/self.sphere_diam
             self.inertia, self.rot_matrix, self.quaternion = mom_inertia(
-                particles=self.core_coord, mass=halo_mass)
-        
+                particles=self.core_coord, mass=halo_mass, diam=self.halo_diam, dim=dimensions)
 
     def vol_cluster(self, dimensions):
         if dimensions == 2:
@@ -281,7 +282,7 @@ class PartCluster:
 # Moment of Inertia function
 
 
-def mom_inertia(particles, mass):
+def mom_inertia(particles, mass, diam, dim):
     '''Calculates moment of inertia of rigid bodies.
 
     Parameters
@@ -290,6 +291,10 @@ def mom_inertia(particles, mass):
         Coordinates of particles in the cluster.
     mass : float
         Mass of halo sphere.
+    diam : flat
+        Diameter of halo sphere.
+    dim : int
+        Dimensionality of the system.
 
     Returns
     -------
@@ -305,13 +310,26 @@ def mom_inertia(particles, mass):
     Iyz = 0.0
     Ixz = 0.0
 
-    for coord in particles:
-        Ixx += (coord[1]**2 + coord[2]**2) * mass
-        Iyy += (coord[0]**2 + coord[2]**2) * mass
-        Izz += (coord[0]**2 + coord[1]**2) * mass
-        Ixy += -coord[0]*coord[1]*mass
-        Iyz += -coord[1]*coord[2]*mass
-        Ixz += -coord[0]*coord[2]*mass
+    r = diam/2
+
+
+    if dim == 2:
+        for coord in particles:
+            Ixx += (coord[1]**2 + coord[2]**2) * mass + (1/4)*mass*r**2
+            Iyy += (coord[0]**2 + coord[2]**2) * mass + (1/4)*mass*r**2
+            Izz += (coord[0]**2 + coord[1]**2) * mass + (1/2)*mass*r**2
+            Ixy += -coord[0]*coord[1]*mass
+            Iyz += -coord[1]*coord[2]*mass
+            Ixz += -coord[0]*coord[2]*mass
+    elif dim == 3:
+        for coord in particles:
+            Ixx += (coord[1]**2 + coord[2]**2) * mass + (2/5)*mass*r**2
+            Iyy += (coord[0]**2 + coord[2]**2) * mass + (2/5)*mass*r**2
+            Izz += (coord[0]**2 + coord[1]**2) * mass + (2/5)*mass*r**2
+            Ixy += -coord[0]*coord[1]*mass
+            Iyz += -coord[1]*coord[2]*mass
+            Ixz += -coord[0]*coord[2]*mass
+
 
     inertia_matrix = np.array([[Ixx, Ixy, Ixz],
                                [Ixy, Iyy, Iyz],
@@ -556,7 +574,7 @@ def WCA_corrected(r, rmin, rmax, epsilon, sigma, offset, corr=1):
 
 if __name__ == '__main__':
     cluster = PartCluster(
-    poly_key='2Dspheres', N_cluster=3, halo_diam=1, halo_mass=1, ratio=0.6)
+    poly_key='2Dspheres', N_cluster=3, halo_diam=1, halo_mass=1, ratio=0.6, dimensions=2)
     print('\nCOORDINATES')
     print(cluster.core_coord)
 

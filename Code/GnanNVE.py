@@ -109,15 +109,27 @@ for k, v in settings.items():
 
 # Core particle properties
 cluster = PartCluster(
-    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
+    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'], dimensions=dimensions)
 print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 print('halo_diam={}'.format(cluster.halo_diam))
 print('core_diam={}'.format(cluster.core_diam))
 print('sphere_diam={}'.format(cluster.sphere_diam))
 
+# Checks presence/absence of restartable file
+if(os.path.exists(nameString+"_restart.gsd")):
+    restart_avail = True
+else:
+    restart_avail = False
+
+
 # Initialize execution context
-hoomd.context.initialize("")  # "--mode=gpu"
-print('[I] Initialize . . . . done.')
+
+if restart_avail:
+    hoomd.init.read_gsd(filename=nameString+"_init.gsd",
+                        restart=nameString+"_restart.gsd")
+else:
+    hoomd.context.initialize("")  # "--mode=gpu"
+    print('[I] Initialize . . . . done.')
 
 # # Create snapshot for simulation
 # Lattice as starting configuration

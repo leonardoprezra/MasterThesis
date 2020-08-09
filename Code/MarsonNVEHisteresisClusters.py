@@ -94,7 +94,7 @@ if(not os.path.exists("data_{}".format(poly_key))):
 
 # Core particle properties
 cluster = PartCluster(
-    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'])
+    poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'], dimensions=dimensions)
 
 print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 print('halo_diam={}'.format(cluster.halo_diam))
