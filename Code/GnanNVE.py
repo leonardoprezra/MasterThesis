@@ -49,6 +49,10 @@ ptvsd.wait_for_attach()
 
 start_time = time.time()
 
+# #
+# #
+# #
+# #
 # Update settings from arguments
 for i in range(1, len(sys.argv)):
     try:
@@ -107,6 +111,10 @@ print("== using these settings ==")
 for k, v in settings.items():
     print("  {:15s}  =  {:}".format(k, v))
 
+# #
+# #
+# #
+# #
 # Core particle properties
 cluster = PartCluster(
     poly_key=poly_key, N_cluster=N_cluster, halo_diam=halo_diam, halo_mass=halo_mass, ratio=settings['ratio'], dimensions=dimensions)
@@ -115,6 +123,10 @@ print('halo_diam={}'.format(cluster.halo_diam))
 print('core_diam={}'.format(cluster.core_diam))
 print('sphere_diam={}'.format(cluster.sphere_diam))
 
+# #
+# #
+# #
+# #
 # Checks presence/absence of restartable file
 if(os.path.exists(nameString+"_restart.gsd")):
     restart_avail = True
@@ -131,12 +143,19 @@ else:
     hoomd.context.initialize("")  # "--mode=gpu"
     print('[I] Initialize . . . . done.')
 
+# #
+# #
+# #
+# #
 # # Create snapshot for simulation
 # Lattice as starting configuration
 system, total_N = create_snapshot_soft(
     cluster=cluster, dimensions=dimensions, N=N)
 
-
+# #
+# #
+# #
+# #
 # Neighbor list and Potential selection
 nl = hoomd.md.nlist.cell()
 
@@ -194,6 +213,10 @@ HERTZIAN.bond_coeff.set('hertzian', func=hertzian, rmin=0, rmax=cluster.sphere_d
 HERTZIAN.bond_coeff.set('fene', func=hertzian, rmin=0, rmax=cluster.sphere_diam*2,
                         coeff=dict(U=0, sigma_H=(cluster.sphere_diam-halo_diam)/2))
 '''
+# #
+# #
+# #
+# #
 # # Equilibration
 # Integrator selection
 hoomd.md.integrate.mode_standard(dt=time_step)
@@ -212,6 +235,10 @@ core_thermo = hoomd.compute.thermo(group=core_group)
 hoomd.dump.gsd("{:s}_initial.gsd".format(nameString), group=hoomd.group.all(),
                overwrite=True, period=None)
 
+# #
+# #
+# #
+# #
 # Equilibration of 3D cluster
 if dimensions == 3:
     langevin = hoomd.md.integrate.langevin(
@@ -256,7 +283,10 @@ langevin_core.set_gamma(a='core', gamma=0)
 langevin_core.disable()
 '''
 
-
+# #
+# #
+# #
+# #
 # Adjust density before actual run
 vol = cluster.vol_cluster(dimensions) * total_N
 
@@ -289,7 +319,10 @@ elif dimensions == 3:
 
         hoomd.run(500, quiet=True)
 
-
+# #
+# #
+# #
+# #
 # Store snapshot information
 # hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
 #                overwrite=True, period=None)
@@ -336,6 +369,10 @@ with redirect_stdout(trap_stdout):
         langevin_core.disable()
 '''
 
+# #
+# #
+# #
+# #
 # Increase density
 
 for dens in range(3000, 5010, 10):
@@ -353,6 +390,10 @@ for dens in range(3000, 5010, 10):
 print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
 print(vol/system.box.get_volume())
 
+# #
+# #
+# #
+# #
 # Decrease density
 
 for dens in range(5000, 2990, -10):
