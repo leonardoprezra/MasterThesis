@@ -56,7 +56,7 @@ settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
 settings['outputInterval_gsd'] = 150000
 # Number of time steps between data storage in log file
-settings['outputInterval_log'] = 100
+settings['outputInterval_log'] = 150
 settings['equil_steps'] = 150000  # Number of equilibration steps
 settings['ratio'] = 1
 settings['tstep_multiplier'] = 0.005
