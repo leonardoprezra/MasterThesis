@@ -133,24 +133,31 @@ if(os.path.exists(nameString+"_restart.gsd")):
 else:
     restart_avail = False
 
-
+# #
+# #
+# #
+# #
 # Initialize execution context
 
-if restart_avail:
-    hoomd.init.read_gsd(filename=nameString+"_init.gsd",
-                        restart=nameString+"_restart.gsd")
-else:
-    hoomd.context.initialize("")  # "--mode=gpu"
-    print('[I] Initialize . . . . done.')
+hoomd.context.initialize("")  # "--mode=gpu"
+print('[I] Initialize . . . . done.')
+
 
 # #
 # #
 # #
 # #
-# # Create snapshot for simulation
-# Lattice as starting configuration
-system, total_N = create_snapshot_soft(
-    cluster=cluster, dimensions=dimensions, N=N)
+# Create system
+if restart_avail:
+    system = hoomd.init.read_gsd(filename=nameString+"_init.gsd",
+                                 restart=nameString+"_restart.gsd")
+    group_core = hoomd.group.type(type='core')
+    total_N = len(group_core) 
+else:
+    system, total_N = create_snapshot_soft(cluster=cluster, dimensions=dimensions, N=N)
+
+vol = cluster.vol_cluster(dimensions) * total_N
+dens = 0.30
 
 # #
 # #
@@ -232,36 +239,40 @@ if dimensions == 2:
 
 core_thermo = hoomd.compute.thermo(group=core_group)
 
-hoomd.dump.gsd("{:s}_initial.gsd".format(nameString), group=hoomd.group.all(),
-               overwrite=True, period=None)
 
-# #
-# #
-# #
-# #
-# Equilibration of 3D cluster
-if dimensions == 3:
-    langevin = hoomd.md.integrate.langevin(
-        group=halo_group, kT=settings['kT_therm'], seed=settings['seed'])
-    langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
-    langevin.set_gamma(a='core', gamma=0)
+if not restart_avail:
+    # Stores lattice configuration
+    hoomd.dump.gsd("{:s}_lattice.gsd".format(nameString), group=hoomd.group.all(),
+                overwrite=True, period=None)
 
-    equil_gsd = hoomd.dump.gsd("{:s}_equil.gsd".format(nameString), group=hoomd.group.all(),
-                               overwrite=True, period=int(equil_steps/10))
-    equil_log = hoomd.analyze.log(filename='{:s}_equil.log'.format(nameString),
-                                  quantities=['volume',
-                                              'potential_energy',
-                                              'kinetic_energy',
-                                              'bond_fene_energy',
-                                              'bond_harmonic_energy'],
-                                  period=int(equil_steps/10),
-                                  overwrite=True)
-    hoomd.run(equil_steps, quiet=True)
+    # #
+    # #
+    # #
+    # #
+    # Equilibration of particles in 3D cluster
+    if dimensions == 3:
+        equil_langevin = hoomd.md.integrate.langevin(
+            group=halo_group, kT=settings['kT_therm'], seed=settings['seed'])
+        equil_langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
+        equil_langevin.set_gamma(a='core', gamma=0)
 
-    equil_gsd.disable()
-    equil_log.disable()
-    langevin.disable()
+        equil_gsd = hoomd.dump.gsd("{:s}_equil.gsd".format(nameString), group=hoomd.group.all(),
+                                overwrite=True, period=int(equil_steps/10))
+        equil_log = hoomd.analyze.log(filename='{:s}_equil.log'.format(nameString),
+                                    quantities=['volume',
+                                                'potential_energy',
+                                                'kinetic_energy',
+                                                'bond_fene_energy',
+                                                'bond_harmonic_energy'],
+                                    period=int(equil_steps/100),
+                                    overwrite=True)
+        hoomd.run(equil_steps, quiet=True)
 
+        equil_gsd.disable()
+        equil_log.disable()
+        equil_langevin.disable()
+
+# Integrator selection
 langevin = hoomd.md.integrate.langevin(
     group=all_group, kT=settings['kT_therm'], seed=settings['seed'])
 langevin.set_gamma(a='halo', gamma=settings['fric_coeff'])
@@ -282,92 +293,91 @@ langevin_core = hoomd.md.integrate.langevin(
 langevin_core.set_gamma(a='core', gamma=0)
 langevin_core.disable()
 '''
-
 # #
 # #
 # #
 # #
-# Adjust density before actual run
-vol = cluster.vol_cluster(dimensions) * total_N
+# Creates initial snapshot
+if not restart_avail:
 
-print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
-print(vol/system.box.get_volume())
+    # #
+    # #
+    # #
+    # #
+    # Adjust density before actual run
+    pre_dens = vol/system.box.get_volume()
+    
+    print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
+    print(pre_dens)
 
-pre_dens = vol/system.box.get_volume()
-dens = 0.30
-
-if dimensions == 2:
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
         hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
                                 period=None, scale_particles=True)
+
     elif dimensions == 3:
-        boxLen = math.pow(vol / dens, 1/3)
-        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+        for dens in range(int(pre_dens*10000), int(dens*10000), 100):
+            dens = dens / 10000
+            if dimensions == 2:
+                boxLen = math.sqrt(vol / dens)
+                hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                        period=None, scale_particles=True)
+            elif dimensions == 3:
+                boxLen = math.pow(vol / dens, 1/3)
+                hoomd.update.box_resize(
+                    L=boxLen, period=None, scale_particles=True)
 
-elif dimensions == 3:
-    for dens in range(int(pre_dens*10000), int(dens*10000), 100):
-        dens = dens / 10000
-        if dimensions == 2:
-            boxLen = math.sqrt(vol / dens)
-            hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
-                                    period=None, scale_particles=True)
-        elif dimensions == 3:
-            boxLen = math.pow(vol / dens, 1/3)
-            hoomd.update.box_resize(
-                L=boxLen, period=None, scale_particles=True)
+            hoomd.run(500, quiet=True)
 
-        hoomd.run(500, quiet=True)
-
-# #
-# #
-# #
-# #
-# Store snapshot information
-# hoomd.dump.gsd("final.gsd", group=hoomd.group.all(),
-#                overwrite=True, period=None)
-
-
-log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
-                        quantities=['volume',
-                                    'momentum',
-                                    'time',
-                                    'potential_energy',
-                                    'kinetic_energy',
-                                    'translational_kinetic_energy',
-                                    'rotational_kinetic_energy',
-                                    'temperature',
-                                    'pressure',
-                                    'pair_lj_energy',
-                                    'potential_energy_core',
-                                    'potential_energy_halo',
-                                    'kinetic_energy_core',
-                                    'kinetic_energy_halo',
-                                    'bond_fene_energy',
-                                    'bond_harmonic_energy'],
-                        period=outputInterval_log,
+    # Creates initial snapshot
+    gsd_init = hoomd.dump.gsd(filename='{:s}_init.gsd'.format(nameString),
+                        period=outputInterval_gsd,
+                        group=hoomd.group.all(),
+                        dynamic=['momentum'],
                         overwrite=True)
 
+    hoomd.run(equil_steps, quiet=True)
+
+    gsd_init.disable()
+
+# #
+# #
+# #
+# #
+# Simulation data
 
 gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
-                     period=outputInterval_gsd,
-                     group=hoomd.group.all(),
-                     dynamic=['momentum'],
-                     overwrite=True)
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    dynamic=['momentum'],
+                    phase=0)
 
-'''
-trap_stdout = io.StringIO()
+log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
+                            quantities=['volume',
+                                        'momentum',
+                                        'time',
+                                        'potential_energy',
+                                        'kinetic_energy',
+                                        'translational_kinetic_energy',
+                                        'rotational_kinetic_energy',
+                                        'temperature',
+                                        'pressure',
+                                        'pair_lj_energy',
+                                        'potential_energy_core',
+                                        'potential_energy_halo',
+                                        'kinetic_energy_core',
+                                        'kinetic_energy_halo',
+                                        'bond_fene_energy',
+                                        'bond_harmonic_energy'],
+                            period=outputInterval_log,
+                            phase=0)
 
-with redirect_stdout(trap_stdout):
-    for i in range(therm_steps):
-        langevin_halo.enable()
-        hoomd.run(1, quiet=True)
-        langevin_halo.disable()
 
-        langevin_core.enable()
-        hoomd.run(1, quiet=True)
-        langevin_core.disable()
-'''
+gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
 
 # #
 # #
@@ -375,19 +385,45 @@ with redirect_stdout(trap_stdout):
 # #
 # Increase density
 
-for dens in range(3000, 5010, 10):
-    dens = dens / 10000
-    if dimensions == 2:
-        boxLen = math.sqrt(vol / dens)
-        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
-                                period=None, scale_particles=True)
-    elif dimensions == 3:
-        boxLen = math.pow(vol / dens, 1/3)
-        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+pre_dens = vol/system.box.get_volume()
+pre_dens = int(pre_dens*10000)
+dens = int(dens*10000)
 
-    hoomd.run(equil_steps, quiet=True)
+length_run = len([i for i in range(pre_dens, 5010, 10)])
+
+
+    print('!!!!!!!!!!!!!!!!!!!!!\nInitial Compression')
+    print(vol/system.box.get_volume())
+
+    for dens in range(pre_dens, 5010, 10):
+        remain_length = len([i for i in range(dens, 5010, 10)])
+        i = length_run - remain_length + 1
+
+        dens = dens / 10000
+        if dimensions == 2:
+            boxLen = math.sqrt(vol / dens)
+            hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                    period=None, scale_particles=True)
+        elif dimensions == 3:
+            boxLen = math.pow(vol / dens, 1/3)
+            hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+
+        try:
+            hoomd.run_upto(equil_steps*i, quiet=True, limit_multiple=outputInterval_gsd)
+        except WalltimeLimitReached:
+            pass
+
+    gsd_restart.write_restart()
+
 
 print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
+print(vol/system.box.get_volume())
+
+
+pre_dens = vol/system.box.get_volume()
+pre_dens = int(pre_dens*10000)
+
+print('!!!!!!!!!!!!!!!!!!!!!\nInitial Expansion')
 print(vol/system.box.get_volume())
 
 # #
@@ -396,7 +432,7 @@ print(vol/system.box.get_volume())
 # #
 # Decrease density
 
-for dens in range(5000, 2990, -10):
+for dens in range(pre_dens, 2990, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -406,7 +442,12 @@ for dens in range(5000, 2990, -10):
         boxLen = math.pow(vol / dens, 1/3)
         hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-    hoomd.run(equil_steps, quiet=True)
+    try:
+        hoomd.run(equil_steps, quiet=True, limit_multiple=outputInterval_gsd)
+    except WalltimeLimitReached:
+        pass
+
+gsd_restart.write_restart()
 
 print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
 print(vol/system.box.get_volume())
