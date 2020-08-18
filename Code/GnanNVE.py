@@ -234,8 +234,7 @@ halo_group = hoomd.group.type(type='halo', name='halo')
 core_group = hoomd.group.type(type='core', name='core')
 
 # Computes thermodynamical properties of halo particles
-if dimensions == 2:
-    halo_thermo = hoomd.compute.thermo(group=halo_group)
+halo_thermo = hoomd.compute.thermo(group=halo_group)
 
 core_thermo = hoomd.compute.thermo(group=core_group)
 
@@ -316,14 +315,14 @@ if not restart_avail:
                                 period=None, scale_particles=True)
 
     elif dimensions == 3:
-        for dens in range(int(pre_dens*10000), int(dens*10000), 100):
-            dens = dens / 10000
+        for density in range(int(pre_dens*10000), int(dens*10000), 100):
+            density = density / 10000
             if dimensions == 2:
-                boxLen = math.sqrt(vol / dens)
+                boxLen = math.sqrt(vol / density)
                 hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
                                         period=None, scale_particles=True)
             elif dimensions == 3:
-                boxLen = math.pow(vol / dens, 1/3)
+                boxLen = math.pow(vol / density, 1/3)
                 hoomd.update.box_resize(
                     L=boxLen, period=None, scale_particles=True)
 
@@ -333,7 +332,7 @@ if not restart_avail:
     gsd_init = hoomd.dump.gsd(filename='{:s}_init.gsd'.format(nameString),
                         period=outputInterval_gsd,
                         group=hoomd.group.all(),
-                        dynamic=['momentum'],
+                        truncate=True,
                         overwrite=True)
 
     hoomd.run(equil_steps, quiet=True)
@@ -373,58 +372,42 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                             phase=0)
 
 
-gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
-                    period=outputInterval_gsd,
-                    group=hoomd.group.all(),
-                    phase=0,
-                    truncate=True)
-
 # #
 # #
 # #
 # #
 # Increase density
 
-pre_dens = vol/system.box.get_volume()
-pre_dens = int(pre_dens*10000)
-dens = int(dens*10000)
-
-length_run = len([i for i in range(pre_dens, 5010, 10)])
-
-
+if not restart_avail:
+    
     print('!!!!!!!!!!!!!!!!!!!!!\nInitial Compression')
     print(vol/system.box.get_volume())
 
-    for dens in range(pre_dens, 5010, 10):
-        remain_length = len([i for i in range(dens, 5010, 10)])
-        i = length_run - remain_length + 1
-
-        dens = dens / 10000
+    for density in range(int(dens*10000), 5010, 10):
+        density = density / 10000
         if dimensions == 2:
-            boxLen = math.sqrt(vol / dens)
+            boxLen = math.sqrt(vol / density)
             hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
                                     period=None, scale_particles=True)
         elif dimensions == 3:
-            boxLen = math.pow(vol / dens, 1/3)
+            boxLen = math.pow(vol / density, 1/3)
             hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+        
+        hoomd.run(equil_steps, quiet=True)
 
-        try:
-            hoomd.run_upto(equil_steps*i, quiet=True, limit_multiple=outputInterval_gsd)
-        except WalltimeLimitReached:
-            pass
+    print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
+    print(vol/system.box.get_volume())
+    
+    gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
 
     gsd_restart.write_restart()
 
+    gsd_restart.disable()
 
-print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
-print(vol/system.box.get_volume())
-
-
-pre_dens = vol/system.box.get_volume()
-pre_dens = int(pre_dens*10000)
-
-print('!!!!!!!!!!!!!!!!!!!!!\nInitial Expansion')
-print(vol/system.box.get_volume())
 
 # #
 # #
@@ -432,25 +415,27 @@ print(vol/system.box.get_volume())
 # #
 # Decrease density
 
-for dens in range(pre_dens, 2990, -10):
-    dens = dens / 10000
-    if dimensions == 2:
-        boxLen = math.sqrt(vol / dens)
-        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
-                                period=None, scale_particles=True)
-    elif dimensions == 3:
-        boxLen = math.pow(vol / dens, 1/3)
-        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+elif restart_avail:
 
-    try:
-        hoomd.run(equil_steps, quiet=True, limit_multiple=outputInterval_gsd)
-    except WalltimeLimitReached:
-        pass
+    print('!!!!!!!!!!!!!!!!!!!!!\nInitial Expansion')
+    print(vol/system.box.get_volume())
 
-gsd_restart.write_restart()
+    for density in range(5000, int(dens*10000)-10, -10):
+        
+        density = density / 10000
+        if dimensions == 2:
+            boxLen = math.sqrt(vol / density)
+            hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                    period=None, scale_particles=True)
+        elif dimensions == 3:
+            boxLen = math.pow(vol / density, 1/3)
+            hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
 
-print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
-print(vol/system.box.get_volume())
+        hoomd.run(equil_steps, quiet=True)
+
+
+    print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
+    print(vol/system.box.get_volume())
 
 
 end_time = time.time()
