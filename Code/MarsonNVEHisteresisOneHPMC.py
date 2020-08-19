@@ -149,7 +149,9 @@ if dimensions == 2:
 elif dimensions == 3:
     vol = math.pi/6*halo_diam**3 * total_N
 
-dens = 0.65
+
+'''
+dens = 0.3
 if dimensions == 2:
     boxLen = math.sqrt(vol / dens)
     hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
@@ -157,7 +159,7 @@ if dimensions == 2:
 elif dimensions == 3:
     boxLen = math.pow(vol / dens, 1/3)
     hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
-
+'''
 
 print('[II] Snapshot . . . . done.')
 
@@ -166,6 +168,27 @@ print('[II] Snapshot . . . . done.')
 mc = hoomd.hpmc.integrate.sphere(d=halo_diam*0.1, seed=1)
 
 mc.shape_param.set('core', diameter=halo_diam)
+
+# Adjust density before actual run
+print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
+print(vol/system.box.get_volume())
+
+pre_dens = vol/system.box.get_volume()
+dens = 0.30
+
+if dimensions == 2:
+    boxLen = math.sqrt(vol / dens)
+    hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                            period=None, scale_particles=True)
+
+elif dimensions == 3:
+    for dens in range(int(pre_dens*10000), int(dens*10000), 100):
+        dens = dens / 10000
+        boxLen = math.pow(vol / dens, 1/3)
+        hoomd.update.box_resize(
+            L=boxLen, period=None, scale_particles=True)
+
+        hoomd.run(500, quiet=True)
 
 # Store snapshot information
 
@@ -194,7 +217,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(6500, 7410, 10):
+for dens in range(3000, 5510, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -211,7 +234,7 @@ print(vol/system.box.get_volume())
 
 
 # Decrease density
-for dens in range(7400, 6490, -10):
+for dens in range(5500, 2990, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)

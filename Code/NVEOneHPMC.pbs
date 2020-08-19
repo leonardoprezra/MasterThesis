@@ -2,7 +2,7 @@
 # Batch processing script
 
 
-#PBS -l nodes=1:ppn=4,walltime=06:00:00
+#PBS -l nodes=1:ppn=4,walltime=23:45:00
 #PBS -N rigidOneHPMC
 
 
