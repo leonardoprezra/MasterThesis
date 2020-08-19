@@ -63,7 +63,7 @@ settings['sigma'] = settings['diameter'] * \
     settings['ratio']  # WCA-potential parameters (LANGEVIN)
 
 settings['density'] = 0.70
-
+settings['pair'] = 'LJ'
 nameFormat = "data_{poly}/" + settings['nameString']
 
 

@@ -3,7 +3,7 @@
 
 
 #PBS -l nodes=1:ppn=4,walltime=23:45:00
-#PBS -N rigidTetra
+#PBS -N rigidICO
 
 
 
