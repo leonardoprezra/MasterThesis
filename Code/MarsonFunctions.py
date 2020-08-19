@@ -11,7 +11,7 @@ settings = {}
 
 settings['N'] = 3  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Outer diameter of cluster
-settings['poly'] = '3Dspheres'  # Type of polyhedron
+settings['poly'] = 'ico'  # Type of polyhedron
 settings['mass'] = 1.0  # Mass of halo particles
 settings['density'] = 0.70  # Volume fraction
 settings['dimensions'] = 3  # 2d or 3d

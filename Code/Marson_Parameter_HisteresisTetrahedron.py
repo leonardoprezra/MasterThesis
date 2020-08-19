@@ -46,17 +46,17 @@ args.ratio /= 1000
 
 # General simulation parameters
 settings = {}
-settings['N'] = 16  # N**2 or N**3 are the number of PSCs
+settings['N'] = 13  # N**2 or N**3 are the number of PSCs
 settings['diameter'] = 1  # Diameter of halo particles
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}_pair-{pair}'
 settings["initFile"] = 'None'
 # Number of time steps between data storage in gsd file
-settings['outputInterval_gsd'] = 70000
+settings['outputInterval_gsd'] = 150000
 # Number of time steps between data storage in log file
-settings['outputInterval_log'] = 70
-settings['equil_steps'] = 70000  # Number of equilibration steps
+settings['outputInterval_log'] = 150
+settings['equil_steps'] = 150000  # Number of equilibration steps
 settings['ratio'] = 1
 settings['tstep_multiplier'] = 0.005
 settings['sigma'] = settings['diameter'] * \
@@ -75,9 +75,9 @@ tstep_multiplier = settings['tstep_multiplier']
 parameterspace += [
     {**settings,
      'integrator': 'langevin',
-     'poly': 'tetra',
+     'poly': 'ico',
      'dimensions': 3,
-     'N_cluster': 4,
+     'N_cluster': 12,
      'ratio': args.ratio,
      'time_step': tstep_multiplier*math.sqrt(settings['mass']*settings['sigma']**2/settings['epsilon'])
      # 'initFile': [nameFormat.format(**settings)+'_restart-000.gsd']

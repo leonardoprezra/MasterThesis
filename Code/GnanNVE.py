@@ -392,7 +392,7 @@ if not restart_avail:
         elif dimensions == 3:
             boxLen = math.pow(vol / density, 1/3)
             hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
-        
+            
         hoomd.run(equil_steps, quiet=True)
 
     print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')

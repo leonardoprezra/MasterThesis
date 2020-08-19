@@ -165,7 +165,7 @@ print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
 print(vol/system.box.get_volume())
 
 pre_dens = vol/system.box.get_volume()
-dens = 0.45
+dens = 0.30
 
 if dimensions == 2:
     if dimensions == 2:
@@ -216,7 +216,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(4500, 7010, 10):
+for dens in range(3000, 5010, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -233,7 +233,7 @@ print(vol/system.box.get_volume())
 
 # Decrease density
 
-for dens in range(7000, 4490, -10):
+for dens in range(5000, 2990, -10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
