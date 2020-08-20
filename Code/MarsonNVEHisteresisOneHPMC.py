@@ -111,14 +111,14 @@ print('[I] Initialize . . . . done.')
 
 # # Create snapshot for simulation
 # Lattice as starting configuration
-a1, a2, a3 = [[1.3, 0, 0],
-              [0, 1.3, 0],
-              [0, 0, 1.3]]
+a1, a2, a3 = [[1.3*halo_diam, 0, 0],
+              [0, 1.3*halo_diam, 0],
+              [0, 0, 1.3*halo_diam]]
 n = [N, N, N]
 
 if dimensions == 2:
-    a1, a2, a3 = [[1.3, 0, 0],
-                  [0, 1.3, 0],
+    a1, a2, a3 = [[1.3*halo_diam, 0, 0],
+                  [0, 1.3*halo_diam, 0],
                   [0, 0, 1]]
     n = [N, N]
 
