@@ -112,8 +112,8 @@ for initDict in parameterspace:
     out = open(nameString+".outputs", "w")
     proc = subprocess.Popen(["python",  "-u",
                              # "MarsonNVE.py",  #
-                             # "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresisOneHPMC.py",
-                             "/nishome/students/leonardo/Dokumente/Thesis/Code/MarsonNVEHisteresisOneHPMC.py",
+                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresisOneHPMC.py",
+                             # "/nishome/students/leonardo/Dokumente/Thesis/Code/MarsonNVEHisteresisOneHPMC.py",
                              # "MarsonNVEHisteresisOneHPMC.py",
                              *initString],
                             stdout=out,
