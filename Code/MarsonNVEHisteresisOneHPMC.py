@@ -47,7 +47,7 @@ ptvsd.wait_for_attach()
 '''
 
 start_time = time.time()
-
+print('got in')
 # Update settings from arguments
 for i in range(1, len(sys.argv)):
     try:
