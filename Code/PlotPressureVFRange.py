@@ -89,7 +89,7 @@ for d in args.in_file:
         ratio = float(d.split('_')[7].split('-')[1])
 
         cluster = PartCluster(
-            poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio)
+            poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio, dimensions=dimensions)
 
         vol = cluster.vol_cluster(dimensions) * total_N
 
