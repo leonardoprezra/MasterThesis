@@ -383,7 +383,7 @@ if not restart_avail:
     print('!!!!!!!!!!!!!!!!!!!!!\nInitial Compression')
     print(vol/system.box.get_volume())
 
-    for density in range(int(dens*10000), 5010, 10):
+    for density in range(int(dens*10000), 4010, 10):
         density = density / 10000
         if dimensions == 2:
             boxLen = math.sqrt(vol / density)
