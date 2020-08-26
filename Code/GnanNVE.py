@@ -378,12 +378,12 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
 # #
 # Increase density
 
-if not restart_avail:
+if restart_avail:
     
     print('!!!!!!!!!!!!!!!!!!!!!\nInitial Compression')
     print(vol/system.box.get_volume())
 
-    for density in range(int(dens*10000), 4010, 10):
+    for density in range(int(dens*10000), 5010, 10):
         density = density / 10000
         if dimensions == 2:
             boxLen = math.sqrt(vol / density)
@@ -408,7 +408,7 @@ if not restart_avail:
 
     gsd_restart.disable()
 
-
+'''
 # #
 # #
 # #
@@ -436,7 +436,7 @@ elif restart_avail:
 
     print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
     print(vol/system.box.get_volume())
-
+'''
 
 end_time = time.time()
 
