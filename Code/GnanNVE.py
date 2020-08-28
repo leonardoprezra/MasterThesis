@@ -152,9 +152,10 @@ if restart_avail:
     system = hoomd.init.read_gsd(filename=nameString+"_init.gsd",
                                  restart=nameString+"_restart.gsd")
     group_core = hoomd.group.type(type='core')
-    total_N = len(group_core) 
+    total_N = len(group_core)
 else:
-    system, total_N = create_snapshot_soft(cluster=cluster, dimensions=dimensions, N=N)
+    system, total_N = create_snapshot_soft(
+        cluster=cluster, dimensions=dimensions, N=N)
 
 vol = cluster.vol_cluster(dimensions) * total_N
 dens = 0.30
@@ -305,7 +306,7 @@ if not restart_avail:
     # #
     # Adjust density before actual run
     pre_dens = vol/system.box.get_volume()
-    
+
     print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
     print(pre_dens)
 
@@ -376,14 +377,15 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
 # #
 # #
 # #
+# First Stage
 # Increase density
 
-if restart_avail:
-    
-    print('!!!!!!!!!!!!!!!!!!!!!\nInitial Compression')
-    print(vol/system.box.get_volume())
+if not restart_avail:
+    print('!!!!!!!!!!!!!!!!!!!!!\n1st Initial Compression')
+    dens = vol/system.box.get_volume()
+    print(dens)
 
-    for density in range(int(dens*10000), 5010, 10):
+    for density in range(3000, 4010, 10):
         density = density / 10000
         if dimensions == 2:
             boxLen = math.sqrt(vol / density)
@@ -391,13 +393,14 @@ if restart_avail:
                                     period=None, scale_particles=True)
         elif dimensions == 3:
             boxLen = math.pow(vol / density, 1/3)
-            hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
-            
+            hoomd.update.box_resize(
+                L=boxLen, period=None, scale_particles=True)
+
         hoomd.run(equil_steps, quiet=True)
 
-    print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
+    print('!!!!!!!!!!!!!!!!!!!!!\n1st Final Compression')
     print(vol/system.box.get_volume())
-    
+
     gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
                     period=outputInterval_gsd,
                     group=hoomd.group.all(),
@@ -408,20 +411,63 @@ if restart_avail:
 
     gsd_restart.disable()
 
-'''
-# #
-# #
-# #
-# #
-# Decrease density
+    gsd_stage = hoomd.dump.gsd(filename='{:s}_Stage-1.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
 
-elif restart_avail:
+    gsd_stage.write_restart()
 
-    print('!!!!!!!!!!!!!!!!!!!!!\nInitial Expansion')
-    print(vol/system.box.get_volume())
+    gsd_stage.disable()
 
-    for density in range(5000, int(dens*10000)-10, -10):
-        
+# #
+# #
+# #
+# #
+# Checks presence/absence of outputs file
+stage_1 = False
+stage_2 = False
+stage_3 = False
+stage_4 = False
+
+if(os.path.exists(nameString+"_Stage-1.gsd")):
+    stage_1 = True
+    stage_2 = False
+    stage_3 = False
+    stage_4 = False
+
+if(os.path.exists(nameString+"_Stage-2.gsd")):
+    stage_1 = False
+    stage_2 = True
+    stage_3 = False
+    stage_4 = False
+
+if(os.path.exists(nameString+"_Stage-3.gsd")):
+    stage_1 = False
+    stage_2 = False
+    stage_3 = True
+    stage_4 = False
+
+if(os.path.exists(nameString+"_Stage-4.gsd")):
+    stage_1 = False
+    stage_2 = False
+    stage_3 = False
+    stage_4 = True
+
+# #
+# #
+# #
+# #
+# Second Stage
+# Increase density
+
+if restart_avail and stage_1:
+    print('!!!!!!!!!!!!!!!!!!!!!\n2nd Initial Compression')
+    dens = vol/system.box.get_volume()
+    print(dens)
+
+    for density in range(4010, 5010, 10):
         density = density / 10000
         if dimensions == 2:
             boxLen = math.sqrt(vol / density)
@@ -429,14 +475,132 @@ elif restart_avail:
                                     period=None, scale_particles=True)
         elif dimensions == 3:
             boxLen = math.pow(vol / density, 1/3)
-            hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
+            hoomd.update.box_resize(
+                L=boxLen, period=None, scale_particles=True)
 
         hoomd.run(equil_steps, quiet=True)
 
-
-    print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
+    print('!!!!!!!!!!!!!!!!!!!!!\n2nd Final Compression')
     print(vol/system.box.get_volume())
-'''
+
+    gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_restart.write_restart()
+
+    gsd_restart.disable()
+
+    gsd_stage = hoomd.dump.gsd(filename='{:s}_Stage-2.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_stage.write_restart()
+
+    gsd_stage.disable()
+
+
+# #
+# #
+# #
+# #
+# Third Stage
+# Decrease density
+
+if restart_avail and stage_2:
+    print('!!!!!!!!!!!!!!!!!!!!!\n3rd Initial Expansion')
+    dens = vol/system.box.get_volume()
+    print(dens)
+
+    for density in range(5000, 3990, -10):
+        density = density / 10000
+        if dimensions == 2:
+            boxLen = math.sqrt(vol / density)
+            hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                    period=None, scale_particles=True)
+        elif dimensions == 3:
+            boxLen = math.pow(vol / density, 1/3)
+            hoomd.update.box_resize(
+                L=boxLen, period=None, scale_particles=True)
+
+        hoomd.run(equil_steps, quiet=True)
+
+    print('!!!!!!!!!!!!!!!!!!!!!\n3rd Final Expansion')
+    print(vol/system.box.get_volume())
+
+    gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_restart.write_restart()
+
+    gsd_restart.disable()
+
+    gsd_stage = hoomd.dump.gsd(filename='{:s}_Stage-3.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_stage.write_restart()
+
+    gsd_stage.disable()
+
+
+# #
+# #
+# #
+# #
+# Fourth Stage
+# Decrease density
+
+if restart_avail and stage_3:
+    print('!!!!!!!!!!!!!!!!!!!!!\n4th Initial Compression')
+    dens = vol/system.box.get_volume()
+    print(dens)
+
+    for density in range(3990, 2990, -10):
+        density = density / 10000
+        if dimensions == 2:
+            boxLen = math.sqrt(vol / density)
+            hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                    period=None, scale_particles=True)
+        elif dimensions == 3:
+            boxLen = math.pow(vol / density, 1/3)
+            hoomd.update.box_resize(
+                L=boxLen, period=None, scale_particles=True)
+
+        hoomd.run(equil_steps, quiet=True)
+
+    print('!!!!!!!!!!!!!!!!!!!!!\n4th Final Compression')
+    print(vol/system.box.get_volume())
+
+    gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_restart.write_restart()
+
+    gsd_restart.disable()
+
+    gsd_stage = hoomd.dump.gsd(filename='{:s}_Stage-4.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_stage.write_restart()
+
+    gsd_stage.disable()
+
 
 end_time = time.time()
 

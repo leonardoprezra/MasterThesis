@@ -49,12 +49,12 @@ for root, dirs, files in os.walk(path, topdown=True):
                    [0], os.path.join(root, name))
             data_names_ENERGY.append(val)
 
-        elif name[-4:] == '.log':
+        elif name[-5:] == '0.log':
             val = (root.split('/')[-1], name.split('.log')
                    [0], os.path.join(root, name))
             data_names.append(val)
 
-print('Number of .log files = ', len(data_names))
+print('Number of 0.log files = ', len(data_names))
 
 print('Number of ENERGY.log files = ', len(data_names_ENERGY))
 
@@ -109,7 +109,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                     ratio = float(d[1].split('_')[7].split('-')[1])
 
                     cluster = PartCluster(
-                        poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio)
+                        poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio, dimensions=dimensions)
 
                     vol = cluster.vol_cluster(dimensions) * total_N
 
@@ -120,9 +120,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 data_ave = np.array(data_ave)
 
                 # Error bars
-                error = [np.std(data[i-args.frame_ave:i, 9]) for i in
+                error = [np.std(data[i-args.frame_ave:i, 9])/math.sqrt(args.frame_ave) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
-                error = error/math.sqrt(args.frame_ave)
 
                 # ax5_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)
@@ -175,7 +174,7 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                     ratio = float(d[1].split('_')[7].split('-')[1])
 
                     cluster = PartCluster(
-                        poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio)
+                        poly_key=poly_key, N_cluster=N_cluster, halo_diam=1, halo_mass=1, ratio=ratio, dimensions=dimensions)
 
                     vol = cluster.vol_cluster(dimensions) * total_N
 
@@ -186,10 +185,8 @@ for t_s in [titles_subtitle, titles_subtitle_ENERGY]:
                 data_ave = np.array(data_ave)
 
                 # Error bars
-                error = [np.std(data[i-args.frame_ave:i, 4] + data[i-args.frame_ave:i, 5]) for i in
+                error = [np.std(data[i-args.frame_ave:i, 4] + data[i-args.frame_ave:i, 5])/math.sqrt(args.frame_ave) for i in
                          range(args.frame_jump, args.frame_total*args.frame_jump, args.frame_jump)]
-
-                error = error/math.sqrt(args.frame_ave)
 
                 # ax1_1.plot(data_ave[:, 0], data_ave[:, 1],
                 #           label=label, linewidth=2)

@@ -115,11 +115,27 @@ for initDict in parameterspace:
         pass
 
     # Print current working simulation
-    if(os.path.exists(nameString+".outputs")):
-        print("\nSkipping "+nameString)
-        continue
+    if(os.path.exists(nameString+"_Stage-1.outputs")):
+
+        if(not os.path.exists(nameString+"_Stage-2.outputs")) and (not os.path.exists(nameString+"_Stage-3.outputs")):
+            out_file = nameString+"_Stage-2.outputs"
+            print("\nStage-2")
+            print(out_file)
+        elif(os.path.exists(nameString+"_Stage-2.outputs")) and (not os.path.exists(nameString+"_Stage-3.outputs")):
+            out_file = nameString+"_Stage-3.outputs"
+            print("\nStage-3")
+            print(out_file)
+        elif(os.path.exists(nameString+"_Stage-3.outputs")) and (not os.path.exists(nameString+"_Stage-4.outputs")):
+            out_file = nameString+"_Stage-4.outputs"
+            print("\nStage-4")
+            print(out_file)
+        else:
+            print("\nSkipping "+nameString)
+            continue
     else:
-        print("\nLauing "+nameString)
+        out_file = nameString+"_Stage-1.outputs"
+        print("\nStage-1")
+        print(out_file)
 
     # Create list with command line arguments
     initString = []
@@ -128,7 +144,7 @@ for initDict in parameterspace:
         initString.append('{}={}'.format(str(p), str(v)))
 
     # Run simulations
-    out = open(nameString+".outputs", "w")
+    out = open(out_file, "w")
     proc = subprocess.Popen(["python",  "-u",
                              # "MarsonNVE.py",  #
                              "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/GnanNVE.py",
