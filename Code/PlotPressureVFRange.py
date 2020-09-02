@@ -162,7 +162,7 @@ for d in args.in_file:
     # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
     ax5_1.legend()
     ax5_1.xaxis.set_major_locator(MultipleLocator(0.01))
-    # plt.show()
+    plt.show()
     fig5.tight_layout()
     if d.split('_')[-1].split('-')[0] == 'harmk':
         fig5.savefig(
