@@ -49,7 +49,7 @@ for root, dirs, files in os.walk(path, topdown=True):
                    [0], os.path.join(root, name))
             data_names_ENERGY.append(val)
 
-        elif name[-5:] == '0.log':
+        elif name[-4:] == '.log':
             val = (root.split('/')[-1], name.split('.log')
                    [0], os.path.join(root, name))
             data_names.append(val)

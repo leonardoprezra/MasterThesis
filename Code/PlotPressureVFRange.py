@@ -8,6 +8,8 @@ no sub directories should exist in data_*.
 '''
 
 from matplotlib import pyplot as plt
+from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
+                               AutoMinorLocator)
 import numpy as np
 import os
 import math
@@ -60,8 +62,9 @@ for d in args.in_file:
 
     # # Information from file name
     # Label includes: (5) Nclus, (4) dim, (3) VF, (7) ratio
-    label = d.split('_')[4] + '_' + \
-        d.split('_')[5] + '_' + d.split('_')[7]
+    label = 'd-' + d.split('_')[4].split('-')[1] + '_' + \
+            'n-' + d.split('_')[5].split('-')[1] + '_' #+ \
+            #'r-' + ''d.split('_')[7].split('-')[1]
 
     # Check for harmk
     if d.split('_')[-1].split('-')[0] == 'harmk':
@@ -102,7 +105,8 @@ for d in args.in_file:
     # # Plot Pressure-VF
     fig5 = plt.figure(5)
     ax5_1 = fig5.add_subplot(1, 1, 1)
-    ax5_1.set_title('data-{}\nN-{}'.format(poly_key, total_N))
+    #ax5_1.set_title('data-{}\nN-{}'.format(poly_key, total_N))
+    ax5_1.set_title('N-{}'.format(total_N))
 
     # Averages the Pressure data points at each VF
     data_ave = [[vol / np.mean(
@@ -148,15 +152,17 @@ for d in args.in_file:
           str(d + '\n' + str(data_ave.shape)))
 
     # Secondary axis, frames in gsd file
-    secax = ax5_1.secondary_xaxis('top', functions=(lambda x: (
-        x-data_ave[0, 0])*args.frame_jump, lambda x: x/args.frame_jump + data_ave[0, 0]))
+    # secax = ax5_1.secondary_xaxis('top', functions=(lambda x: (
+    #    x-data_ave[0, 0])*args.frame_jump, lambda x: x/args.frame_jump + data_ave[0, 0]))
 
     # Axis labels
-    secax.set_xlabel('Frame number')
+    #secax.set_xlabel('Frame number')
     ax5_1.set_ylabel('$\dfrac{PA_n}{kT}$ / -')
     ax5_1.set_xlabel('$\phi$ / -')
     # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
     ax5_1.legend()
+    ax5_1.xaxis.set_major_locator(MultipleLocator(0.01))
+    # plt.show()
     fig5.tight_layout()
     if d.split('_')[-1].split('-')[0] == 'harmk':
         fig5.savefig(
