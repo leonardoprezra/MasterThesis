@@ -158,7 +158,7 @@ else:
         cluster=cluster, dimensions=dimensions, N=N)
 
 vol = cluster.vol_cluster(dimensions) * total_N
-dens = 0.30
+dens = 0.40
 
 # #
 # #
@@ -371,8 +371,61 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                                         'bond_harmonic_energy'],
                             period=outputInterval_log,
                             phase=0)
+# #
+# #
+# #
+# #
+# Compression
+print('!!!!!!!!!!!!!!!!!!!!!\nCompression')
+dens = vol/system.box.get_volume()
+print(dens)
+
+for density in range(4000, 7010, 10):
+    density = density / 10000
+    if dimensions == 2:
+        boxLen = math.sqrt(vol / density)
+        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                period=None, scale_particles=True)
+    elif dimensions == 3:
+        boxLen = math.pow(vol / density, 1/3)
+        hoomd.update.box_resize(
+            L=boxLen, period=None, scale_particles=True)
+
+    hoomd.run(equil_steps, quiet=True)
+
+print('!!!!!!!!!!!!!!!!!!!!!\n1st Final Compression')
+print(vol/system.box.get_volume())
 
 
+# #
+# #
+# #
+# #
+# Expansion
+
+
+print('!!!!!!!!!!!!!!!!!!!!!\nInitial Expansion')
+dens = vol/system.box.get_volume()
+print(dens)
+
+for density in range(7000, 3990, -10):
+    density = density / 10000
+    if dimensions == 2:
+        boxLen = math.sqrt(vol / density)
+        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                period=None, scale_particles=True)
+    elif dimensions == 3:
+        boxLen = math.pow(vol / density, 1/3)
+        hoomd.update.box_resize(
+            L=boxLen, period=None, scale_particles=True)
+
+    hoomd.run(equil_steps, quiet=True)
+
+print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
+print(vol/system.box.get_volume())
+
+
+'''
 # #
 # #
 # #
@@ -600,7 +653,7 @@ if restart_avail and stage_3:
     gsd_stage.write_restart()
 
     gsd_stage.disable()
-
+'''
 
 end_time = time.time()
 

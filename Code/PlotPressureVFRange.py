@@ -68,8 +68,9 @@ for d in args.in_file:
 
     # Check for harmk
     if d.split('_')[-1].split('-')[0] == 'harmk':
-        label = d.split('_')[4] + '_' + \
-            d.split('_')[5] + '_' + d.split('_')[-1]
+        label = 'd-' + d.split('_')[4].split('-')[1] + '_' + \
+                'n-' + d.split('_')[5].split('-')[1] + '_' + \
+                'k-' + d.split('_')[-1].split('-')[1]
 
         harmk = d.split('_')[-1].split('-')[1]
 
