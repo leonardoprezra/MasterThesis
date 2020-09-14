@@ -3,7 +3,7 @@
 
 
 #PBS -l nodes=1:ppn=4,walltime=23:45:00
-#PBS -N rigidOneHPMC
+#PBS -N OneHPMCHighP
 
 
 
@@ -19,5 +19,5 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python ~/MasterThesis/Code/Marson_Parameter_HisteresisOneHPMC.py # &
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisOneHPMCHighP.py # &
 #wait
