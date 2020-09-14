@@ -1,0 +1,23 @@
+#!/bin/bash -l
+# Batch processing script
+
+
+#PBS -l nodes=1:ppn=4,walltime=23:45:00
+#PBS -N rigidOneHPMC
+
+
+
+# Load required modules (compiler, ...)
+module load python/3.7-anaconda
+module load cuda/10.0
+module load cmake/3.11.1
+# Activate local environment where hoomd is installed
+source activate localconda
+
+# change to temporary job data directory
+# located in node, between 400-900GB
+cd  $WORK
+
+# run simulation
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisOneHPMC.py # &
+#wait

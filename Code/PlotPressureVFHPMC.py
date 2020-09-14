@@ -97,7 +97,7 @@ dimensions = int(d_sdf.split('_')[4].split('-')[1])
 # Volume of particles in simulation
 if poly_key == 'one':
     if dimensions == 3:
-        vol = math.pi/6*1**3 * total_N
+        vol = math.pi/6*4.9923032140681345**3 * total_N
     if dimensions == 2:
         vol = math.pi/4*1**2 * total_N
 else:
@@ -180,7 +180,12 @@ def extrapolate(s, dx, xmax, degree=5):
 p_sdf = np.array([[extrapolate(i, dx=dx, xmax=xmax)] for i in data_sdf])
 
 # P/kT * Area_single_particle
-p_sdf = num_dens*(1+p_sdf/(2*dimensions)) * math.pi/4*1**2
+
+
+if dimensions == 3:
+    p_sdf = num_dens*(1+p_sdf/(2*dimensions)) * math.pi/4*4.9923032140681345**2
+if dimensions == 2:
+    p_sdf = num_dens*(1+p_sdf/(2*dimensions)) * math.pi/4*1**2
 
 # data = [timestep, VF, P/kT]
 data_ave = np.append(vol_log, p_sdf, axis=1)
@@ -216,7 +221,8 @@ plt.clf()
 
 # Array contains [VF,PRESSURE,STD]
 #save_data = data_ave[:,1:]
-save_data = np.concatenate((data_ave[:, 1:], np.zeros((182, 1))), axis=1)
+save_data = np.concatenate(
+    (data_ave[:, 1:], np.zeros((args.frame_total, 1))), axis=1)
 print(save_data.shape)
 # Saves data in .npy file
 np.save(dir_name + d[:-4] + '_Pressure.npy', save_data)
