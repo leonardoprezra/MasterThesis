@@ -3,7 +3,7 @@
 
 
 #PBS -l nodes=1:ppn=4,walltime=23:45:00
-#PBS -N 3DSoft-1000
+#PBS -N 3DSoftStage4-1000
 
 
 
@@ -15,7 +15,7 @@ module load cmake/3.11.1
 source activate localconda
 
 # change to temporary job data directory
-# located in node, between 400-900GB
+# located in node, between 10000-900GB
 cd  $WORK
 
 # run simulation

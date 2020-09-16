@@ -68,10 +68,12 @@ for d in args.in_file:
 
     # Check for harmk
     if d.split('_')[-1].split('-')[0] == 'harmk':
-        label = d.split('_')[4] + '_' + \
-            d.split('_')[5] + '_' + d.split('_')[-1]
+        label = 'd-' + d.split('_')[4].split('-')[1] + '_' + \
+                'n-' + d.split('_')[5].split('-')[1] + '_' + \
+                'k-' + d.split('_')[-1].split('-')[1][:-4]
 
-        harmk = d.split('_')[-1].split('-')[1]
+        harmk = d.split('_')[-1].split('-')[1][:-4]
+
 
     # Number of clusters in simulation (2)
     total_N = int(d.split('_')[2].split('-')[1])
@@ -162,8 +164,10 @@ for d in args.in_file:
     # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
     ax5_1.legend()
     ax5_1.xaxis.set_major_locator(MultipleLocator(0.01))
-    plt.show()
+    plt.xticks(rotation=70)
     fig5.tight_layout()
+    plt.show()
+    
     if d.split('_')[-1].split('-')[0] == 'harmk':
         fig5.savefig(
             dir_name + 'PressureVF_data-{}_N-{}_Nclus-{}_IDens-{}_EDens-{}_harmk-{}.pdf'.format(poly_key, total_N, N_cluster, args.init_dens, args.end_dens, harmk), format='pdf')
@@ -226,6 +230,7 @@ for d in args.in_file:
     ax1_1.set_xlabel('$\phi$ / -')
     # ax4_1.xaxis.set_minor_locator(plt.MultipleLocator(500))
     ax1_1.legend()
+    plt.xticks(rotation=70)
     fig1.tight_layout()
 
     if d.split('_')[-1].split('-')[0] == 'harmk':

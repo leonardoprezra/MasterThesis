@@ -2,9 +2,9 @@
 # Batch processing script
 
 
-#PBS -l nodes=1:ppn=4,walltime=23:00:00
-#PBS -N 2DSoft
-#PBS -t 150,175 #200,225,250,275,300,325,350,375,400,425,450,475,500
+#PBS -l nodes=1:ppn=4,walltime=23:45:00
+#PBS -N OneHPMCHighP
+
 
 
 # Load required modules (compiler, ...)
@@ -19,5 +19,5 @@ source activate localconda
 cd  $WORK
 
 # run simulation
-python ~/MasterThesis/Code/Gnan_Parameter_Histeresis2DSoft.py -n 10 -k $PBS_ARRAYID
-
+python ~/MasterThesis/Code/Marson_Parameter_HisteresisOneHPMCHighP.py # &
+#wait

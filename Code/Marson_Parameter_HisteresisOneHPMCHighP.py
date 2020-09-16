@@ -50,7 +50,7 @@ settings['sigma'] = settings['diameter'] * \
 settings['density'] = 0.70
 settings['pair'] = 150
 
-nameFormat = "data_{poly}/" + settings['nameString']
+nameFormat = "dataHighP_{poly}/" + settings['nameString']
 
 
 # Specific simulation parameters
@@ -88,8 +88,8 @@ for initDict in parameterspace:
 
     # Create directories
     try:
-        if(not os.path.exists("data_{poly}/".format(**initDict))):
-            os.mkdir("data_{poly}/".format(**initDict))
+        if(not os.path.exists("dataHighP_{poly}/".format(**initDict))):
+            os.mkdir("dataHighP_{poly}/".format(**initDict))
     except OSError as e:
         if e.errno != 17:
             raise
@@ -112,9 +112,9 @@ for initDict in parameterspace:
     out = open(nameString+".outputs", "w")
     proc = subprocess.Popen(["python",  "-u",
                              # "MarsonNVE.py",  #
-                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresisOneHPMC.py",
-                             # "/nishome/students/leonardo/Dokumente/Thesis/Code/MarsonNVEHisteresisOneHPMC.py",
-                             # "MarsonNVEHisteresisOneHPMC.py",
+                             "/home/hpc/iwsp/iwsp023h/MasterThesis/Code/MarsonNVEHisteresisOneHPMCHighP.py",
+                             # "/nishome/students/leonardo/Dokumente/Thesis/Code/MarsonNVEHisteresisOneHPMCHighP.py",
+                             # "MarsonNVEHisteresisOneHPMCHighP.py",
                              *initString],
                             stdout=out,
                             stderr=out)

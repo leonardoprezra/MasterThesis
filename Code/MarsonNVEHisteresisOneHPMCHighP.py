@@ -47,7 +47,7 @@ ptvsd.wait_for_attach()
 '''
 
 start_time = time.time()
-print('got in')
+
 # Update settings from arguments
 for i in range(1, len(sys.argv)):
     try:
@@ -88,14 +88,14 @@ if settings['dimensions'] == 3:
 elif settings['dimensions'] == 2:
     settings['N'] = settings['N']**2
 
-nameString = "data_{}/".format(
+nameString = "dataHighP_{}/".format(
     poly_key) + settings['nameString'].format(**settings)
 
 settings['N'] = user_N
 
 # Create directory to store simulation results
-if(not os.path.exists("data_{}".format(poly_key))):
-    os.mkdir("data_{}".format(poly_key))
+if(not os.path.exists("dataHighP_{}".format(poly_key))):
+    os.mkdir("dataHighP_{}".format(poly_key))
 
 # Print simulation information
 print('Working on: {:s}\nUsing: {}'.format(nameString, __file__))
@@ -103,6 +103,7 @@ print('Working on: {:s}\nUsing: {}'.format(nameString, __file__))
 print("== using these settings ==")
 for k, v in settings.items():
     print("  {:15s}  =  {:}".format(k, v))
+
 
 print('halo_diam={}'.format(halo_diam))
 
@@ -175,7 +176,7 @@ print('!!!!!!!!!!!!!!!!!!!!!\nPre-Initial Compression')
 print(vol/system.box.get_volume())
 
 pre_dens = vol/system.box.get_volume()
-dens = 0.30
+dens = 0.49
 
 if dimensions == 2:
     boxLen = math.sqrt(vol / dens)
@@ -218,7 +219,7 @@ gsd = hoomd.dump.gsd(filename='{:s}.gsd'.format(nameString),
 
 # Increase density
 
-for dens in range(3000, 5510, 10):
+for dens in range(4900, 7410, 10):
     dens = dens / 10000
     if dimensions == 2:
         boxLen = math.sqrt(vol / dens)
@@ -231,23 +232,6 @@ for dens in range(3000, 5510, 10):
     hoomd.run(equil_steps, quiet=True)
 
 print('!!!!!!!!!!!!!!!!!!!!!\nFinal Compression')
-print(vol/system.box.get_volume())
-
-
-# Decrease density
-for dens in range(5500, 2990, -10):
-    dens = dens / 10000
-    if dimensions == 2:
-        boxLen = math.sqrt(vol / dens)
-        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
-                                period=None, scale_particles=True)
-    elif dimensions == 3:
-        boxLen = math.pow(vol / dens, 1/3)
-        hoomd.update.box_resize(L=boxLen, period=None, scale_particles=True)
-
-    hoomd.run(equil_steps, quiet=True)
-
-print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
 print(vol/system.box.get_volume())
 
 

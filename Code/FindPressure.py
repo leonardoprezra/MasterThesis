@@ -30,7 +30,7 @@ store_file = 'Plotting_data.npy'
 #store_file = 'Testing_data.npy'
 
 # Data fitting parameters
-window_size = 47
+window_size = 31
 
 # Array to store phase transition data into .npy file
 plotting_data = np.empty((0, 12))

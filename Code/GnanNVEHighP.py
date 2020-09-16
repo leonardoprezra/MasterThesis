@@ -95,14 +95,14 @@ if settings['dimensions'] == 3:
 elif settings['dimensions'] == 2:
     settings['N'] = settings['N']**2
 
-nameString = "dataFLEX_{}/".format(
+nameString = "dataFLEXHighP_{}/".format(
     poly_key) + settings['nameString'].format(**settings)
 
 settings['N'] = user_N
 
 # Create directory to store simulation results
-if(not os.path.exists("dataFLEX_{}".format(poly_key))):
-    os.mkdir("dataFLEX_{}".format(poly_key))
+if(not os.path.exists("dataFLEXHighP_{}".format(poly_key))):
+    os.mkdir("dataFLEXHighP_{}".format(poly_key))
 
 # Print simulation information
 print('Working on: {:s}\nUsing: {}'.format(nameString, __file__))
@@ -158,7 +158,7 @@ else:
         cluster=cluster, dimensions=dimensions, N=N)
 
 vol = cluster.vol_cluster(dimensions) * total_N
-dens = 0.30
+dens = 0.40
 
 # #
 # #
@@ -372,63 +372,6 @@ log = hoomd.analyze.log(filename='{:s}.log'.format(nameString),
                             period=outputInterval_log,
                             phase=0)
 
-'''
-########## 2D SYSTEM ##########
-# #
-# #
-# #
-# #
-# Compression
-print('!!!!!!!!!!!!!!!!!!!!!\nCompression')
-dens = vol/system.box.get_volume()
-print(dens)
-
-for density in range(4000, 7010, 10):
-    density = density / 10000
-    if dimensions == 2:
-        boxLen = math.sqrt(vol / density)
-        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
-                                period=None, scale_particles=True)
-    elif dimensions == 3:
-        boxLen = math.pow(vol / density, 1/3)
-        hoomd.update.box_resize(
-            L=boxLen, period=None, scale_particles=True)
-
-    hoomd.run(equil_steps, quiet=True)
-
-print('!!!!!!!!!!!!!!!!!!!!!\n1st Final Compression')
-print(vol/system.box.get_volume())
-
-
-# #
-# #
-# #
-# #
-# Expansion
-
-
-print('!!!!!!!!!!!!!!!!!!!!!\nInitial Expansion')
-dens = vol/system.box.get_volume()
-print(dens)
-
-for density in range(7000, 3990, -10):
-    density = density / 10000
-    if dimensions == 2:
-        boxLen = math.sqrt(vol / density)
-        hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
-                                period=None, scale_particles=True)
-    elif dimensions == 3:
-        boxLen = math.pow(vol / density, 1/3)
-        hoomd.update.box_resize(
-            L=boxLen, period=None, scale_particles=True)
-
-    hoomd.run(equil_steps, quiet=True)
-
-print('!!!!!!!!!!!!!!!!!!!!!\nFinal Expansion')
-print(vol/system.box.get_volume())
-
-
-'''
 # #
 # #
 # #
@@ -568,11 +511,11 @@ if restart_avail and stage_1:
 # Decrease density
 
 if restart_avail and stage_2:
-    print('!!!!!!!!!!!!!!!!!!!!!\n3rd Initial Expansion')
+    print('!!!!!!!!!!!!!!!!!!!!!\n3rd Initial Compression')
     dens = vol/system.box.get_volume()
     print(dens)
 
-    for density in range(5000, 3990, -10):
+    for density in range(5010, 6010, 10):
         density = density / 10000
         if dimensions == 2:
             boxLen = math.sqrt(vol / density)
@@ -585,7 +528,7 @@ if restart_avail and stage_2:
 
         hoomd.run(equil_steps, quiet=True)
 
-    print('!!!!!!!!!!!!!!!!!!!!!\n3rd Final Expansion')
+    print('!!!!!!!!!!!!!!!!!!!!!\n3rd Final Compression')
     print(vol/system.box.get_volume())
 
     gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
@@ -621,7 +564,7 @@ if restart_avail and stage_3:
     dens = vol/system.box.get_volume()
     print(dens)
 
-    for density in range(3990, 2990, -10):
+    for density in range(6010, 7010, 10):
         density = density / 10000
         if dimensions == 2:
             boxLen = math.sqrt(vol / density)
@@ -648,6 +591,55 @@ if restart_avail and stage_3:
     gsd_restart.disable()
 
     gsd_stage = hoomd.dump.gsd(filename='{:s}_Stage-4.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_stage.write_restart()
+
+    gsd_stage.disable()
+
+
+# #
+# #
+# #
+# #
+# Fifth Stage
+# Decrease density
+
+if restart_avail and stage_4:
+    print('!!!!!!!!!!!!!!!!!!!!!\n5th Initial Compression')
+    dens = vol/system.box.get_volume()
+    print(dens)
+
+    for density in range(7010, 7410, 10):
+        density = density / 10000
+        if dimensions == 2:
+            boxLen = math.sqrt(vol / density)
+            hoomd.update.box_resize(Lx=boxLen, Ly=boxLen,
+                                    period=None, scale_particles=True)
+        elif dimensions == 3:
+            boxLen = math.pow(vol / density, 1/3)
+            hoomd.update.box_resize(
+                L=boxLen, period=None, scale_particles=True)
+
+        hoomd.run(equil_steps, quiet=True)
+
+    print('!!!!!!!!!!!!!!!!!!!!!\n5th Final Compression')
+    print(vol/system.box.get_volume())
+
+    gsd_restart = hoomd.dump.gsd(filename='{:s}_restart.gsd'.format(nameString),
+                    period=outputInterval_gsd,
+                    group=hoomd.group.all(),
+                    phase=0,
+                    truncate=True)
+
+    gsd_restart.write_restart()
+
+    gsd_restart.disable()
+
+    gsd_stage = hoomd.dump.gsd(filename='{:s}_Stage-5.gsd'.format(nameString),
                     period=outputInterval_gsd,
                     group=hoomd.group.all(),
                     phase=0,
