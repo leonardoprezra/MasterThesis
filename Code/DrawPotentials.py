@@ -76,6 +76,7 @@ plt.vlines(radius_2d, -(radius_2d + d/2), 25, colors='k',
            linestyle='--', linewidth=0.75)
 plt.ylim(-(radius_2d + d/2), 25)
 plt.xlim(-(radius_2d + d/2), 25)
+plt.show()
 
 # #
 # #
@@ -138,8 +139,8 @@ plt.vlines(radius_2d, -5, 15, colors='k',
 plt.ylim(-5, 15)
 plt.xlim(-5, 15)
 plt.ylabel('$U_{WCA}$ / -')
-plt.xlabel('r / -')
-
+plt.xlabel('r / $\sigma$')
+plt.show()
 # #
 # #
 # #
@@ -192,9 +193,9 @@ plt.vlines(radius_2d, -5, 15, colors='k',
            linestyle='--', linewidth=0.75)
 plt.ylim(-15, 15)
 plt.xlim(-15, 15)
-plt.ylabel('r / -')
-plt.xlabel('r / -')
-
+plt.ylabel('r / $\sigma$')
+plt.xlabel('r / $\sigma$')
+plt.show()
 # #
 # #
 # #
