@@ -56,7 +56,7 @@ settings['sigma'] = settings['diameter'] * \
     settings['ratio']  # WCA-potential parameters (LANGEVIN)
 
 settings['density'] = 0.70
-settings['pair'] = 150
+settings['pair'] = args.d_sphere
 
 nameFormat = "dataHighP_{poly}/" + settings['nameString']
 
