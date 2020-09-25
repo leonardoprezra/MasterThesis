@@ -28,11 +28,19 @@ import random
 import math
 import sys
 
+import argparse
 
+# Command line argument parsing
+parser = argparse.ArgumentParser(
+    description='Run MC simulations of hard spheres.')
+parser.add_argument('-d', '--Diam-Sphere', type=float, dest='d_sphere',
+                    help='diameter of circumscribing sphere')
+
+args = parser.parse_args()
 # General simulation parameters
 settings = {}
 settings['N'] = 13  # N**2 or N**3 are the number of PSCs
-settings['diameter'] = 4.664219281775262  # Diameter of halo particles
+settings['diameter'] = args.d_sphere  # Diameter of halo particles
 settings['epsilon'] = 1.0  # WCA-potential parameters
 settings['mass'] = 1.0  # Mass of halo particles
 settings['nameString'] = 'integrator-{integrator}_shape-{poly}_N-{N:4d}_VF-{density:4.2f}_dim-{dimensions}_Nclus-{N_cluster}_tstep-{time_step:7.5f}_ratio-{ratio:5.3f}_tmult-{tstep_multiplier:5.3f}_pair-{pair}'
